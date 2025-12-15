@@ -727,7 +727,7 @@ background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('/static/imag
 }
 
 .footer-logo {
-    font-family: 'Playfair Display', serif;
+    font-family:  "Product Sans", sans-serif;
     font-size: 2.5rem;
     font-weight: 700;
     color: var(--white);
@@ -735,7 +735,7 @@ background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('/static/imag
 }
 
 .footer-subtitle {
-    font-family: 'Playfair Display', serif;
+    font-family:  "Product Sans", sans-serif;
     color: var(--gold);
     letter-spacing: 2px;
     margin-bottom: 1rem;
