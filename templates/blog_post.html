@@ -225,6 +225,174 @@
     .newsletter-form button:hover {
         background: var(--light-gold);
     }
+
+    /* ================================================================
+   TRAVAA BLOG POST PAGE — FULL MOBILE RESPONSIVE UPGRADE
+================================================================ */
+
+/* ---------------- GLOBAL ---------------- */
+@media (max-width: 768px) {
+    html, body {
+        overflow-x: hidden !important;
+    }
+
+    section {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+    }
+}
+
+/* ---------------- HERO SECTION ---------------- */
+@media (max-width: 768px) {
+    .post-hero {
+        padding: 110px 20px 60px !important;
+    }
+
+    .post-hero h1 {
+        font-size: 1.9rem !important;
+        line-height: 1.3 !important;
+    }
+
+    .post-hero .blog-category {
+        font-size: 0.75rem !important;
+        padding: 0.25rem 0.9rem !important;
+    }
+
+    .post-hero-meta {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+        font-size: 0.85rem !important;
+    }
+}
+
+/* ---------------- PAGE CONTAINER ---------------- */
+@media (max-width: 992px) {
+    .post-container {
+        padding: 60px 0 !important;
+    }
+
+    .post-layout {
+        grid-template-columns: 1fr !important;
+        gap: 2rem !important;
+    }
+
+    .blog-sidebar {
+        position: relative !important;
+        top: 0 !important;
+    }
+}
+
+/* ---------------- POST CONTENT ---------------- */
+@media (max-width: 768px) {
+    .post-content-wrapper {
+        padding: 1.8rem !important;
+        border-radius: 14px !important;
+    }
+
+    .post-featured-img {
+        height: 220px !important;
+        border-radius: 12px !important;
+    }
+
+    .post-content {
+        font-size: 0.95rem !important;
+        line-height: 1.7 !important;
+    }
+
+    .post-content h2 {
+        font-size: 1.35rem !important;
+    }
+
+    .post-content h3 {
+        font-size: 1.15rem !important;
+    }
+
+    .post-tags a {
+        font-size: 0.8rem !important;
+        padding: 0.3rem 0.75rem !important;
+    }
+
+    .back-to-blog {
+        font-size: 0.85rem !important;
+    }
+}
+
+/* ---------------- SIDEBAR (Recent Posts & Newsletter) ---------------- */
+@media (max-width: 768px) {
+    .sidebar-widget {
+        padding: 1.5rem !important;
+    }
+
+    .recent-post {
+        padding: 0.9rem 0 !important;
+        gap: 0.8rem !important;
+    }
+
+    .recent-post-img {
+        width: 65px !important;
+        height: 50px !important;
+    }
+
+    .recent-post-content h4 {
+        font-size: 0.9rem !important;
+    }
+
+    .recent-post-date {
+        font-size: 0.75rem !important;
+    }
+
+    .newsletter-widget {
+        padding: 1.8rem !important;
+    }
+
+    .newsletter-widget p {
+        font-size: 0.9rem !important;
+    }
+
+    .newsletter-form input,
+    .newsletter-form button {
+        padding: 0.65rem !important;
+        font-size: 0.9rem !important;
+    }
+}
+
+/* ---------------- EXTRA SMALL (≤480px) ---------------- */
+@media (max-width: 480px) {
+
+    .post-hero h1 {
+        font-size: 1.6rem !important;
+    }
+
+    .post-content-wrapper {
+        padding: 1.5rem !important;
+    }
+
+    .post-content {
+        font-size: 0.9rem !important;
+    }
+
+    .post-featured-img {
+        height: 180px !important;
+    }
+
+    .post-tags a {
+        font-size: 0.75rem !important;
+        padding: 0.25rem 0.6rem !important;
+    }
+
+    .newsletter-form button {
+        padding: 0.6rem !important;
+    }
+}
+
+/* ---------------- FIX FOR UL/OL INDENT ON MOBILE ---------------- */
+@media (max-width: 768px) {
+    .post-content ul,
+    .post-content ol {
+        padding-left: 1.1rem !important;
+    }
+}
+
 </style>
 {% endblock %}
 
