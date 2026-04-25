@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; background: #f5f6fa; }
+        .wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .card { width: 340px; background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+        input { width: 100%; padding: 10px; margin: 8px 0 14px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; border: 0; border-radius: 6px; background: #500060; color: #fff; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <form class="card" method="post" action="{{ url_for('admin_views.login_submit') }}">
+            <h2>Admin Login</h2>
+            <label>Email</label>
+            <input type="email" name="email" required>
+            <label>Password</label>
+            <input type="password" name="password" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+</body>
+</html>

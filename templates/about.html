@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}About Us - {{ super() }}{% endblock %}
+
+{% block content %}
+<section style="padding: 140px 0 80px; background: #f7f7f7;">
+    <div class="container">
+        <h1>{{ about.title }}</h1>
+        {% if about.subtitle %}<p style="font-size: 1.1rem; color: #555;">{{ about.subtitle }}</p>{% endif %}
+        {% if about.hero_image_url %}
+            <img src="{{ about.hero_image_url }}" alt="About Travaa Wellness" style="width:100%; max-height:420px; object-fit:cover; border-radius:12px; margin: 16px 0;">
+        {% endif %}
+        <div>{{ about.intro_html|safe }}</div>
+    </div>
+</section>
+
+<section style="padding: 60px 0;">
+    <div class="container" style="display:grid; grid-template-columns:1fr 1fr; gap: 24px;">
+        <div style="background:#fff; border-radius:10px; padding:18px;">
+            <h2>Mission</h2>
+            <div>{{ about.mission_html|safe }}</div>
+        </div>
+        <div style="background:#fff; border-radius:10px; padding:18px;">
+            <h2>Vision</h2>
+            <div>{{ about.vision_html|safe }}</div>
+        </div>
+    </div>
+</section>
+{% endblock %}

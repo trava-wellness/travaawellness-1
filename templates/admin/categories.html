@@ -1,0 +1,47 @@
+{% extends "admin/base.html" %}
+{% block title %}Categories{% endblock %}
+{% block content %}
+<h1>Service Categories</h1>
+
+<div class="card">
+    <h3>Add Category</h3>
+    <form method="post" action="{{ url_for('admin_views.categories_create') }}">
+        <label>Name</label>
+        <input name="name" required>
+        <label>Slug (optional)</label>
+        <input name="slug">
+        <label>Sort Order</label>
+        <input type="number" name="sort_order" value="0">
+        <label><input type="checkbox" name="is_active" checked> Active</label>
+        <button type="submit">Save Category</button>
+    </form>
+</div>
+
+<div class="card">
+    <table>
+        <thead><tr><th>Name</th><th>Slug</th><th>Order</th><th>Active</th><th>Actions</th></tr></thead>
+        <tbody>
+        {% for category in categories %}
+            <tr>
+                <td>
+                    <form method="post" action="{{ url_for('admin_views.categories_update', category_id=category.id) }}">
+                        <input name="name" value="{{ category.name }}" required>
+                </td>
+                <td><input name="slug" value="{{ category.slug }}"></td>
+                <td><input type="number" name="sort_order" value="{{ category.sort_order }}"></td>
+                <td><input type="checkbox" name="is_active" {{ "checked" if category.is_active else "" }}></td>
+                <td>
+                        <button type="submit">Update</button>
+                    </form>
+                    <form method="post" action="{{ url_for('admin_views.categories_delete', category_id=category.id) }}" onsubmit="return confirm('Delete this category?');">
+                        <button class="btn-danger" type="submit">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="5">No categories yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

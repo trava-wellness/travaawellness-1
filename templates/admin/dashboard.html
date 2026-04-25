@@ -1,0 +1,259 @@
+{% extends "admin/base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<style>
+    @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap");
+
+    .dash-page {
+        font-family: "Outfit", system-ui, sans-serif;
+    }
+
+    .dash-page .page-head {
+        margin-bottom: 1.75rem;
+    }
+
+    .dash-page .page-head h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.85rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #1a1020;
+    }
+
+    .dash-page .page-head p {
+        margin: 0;
+        font-size: 1rem;
+        color: #6b6570;
+        font-weight: 500;
+        max-width: 520px;
+        line-height: 1.45;
+    }
+
+    .dash-stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1.1rem;
+        margin-bottom: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+        .dash-stats {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 520px) {
+        .dash-stats {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .dash-stat-card {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        background: linear-gradient(145deg, #ffffff 0%, #faf8fc 100%);
+        border-radius: 16px;
+        padding: 1.35rem 1.4rem 1.45rem;
+        border: 1px solid rgba(80, 0, 96, 0.08);
+        box-shadow:
+            0 1px 2px rgba(80, 0, 96, 0.05),
+            0 8px 28px rgba(80, 0, 96, 0.08);
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .dash-stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #500060, #8b3d9e);
+        border-radius: 16px 16px 0 0;
+        opacity: 0.95;
+    }
+
+    .dash-stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow:
+            0 4px 12px rgba(80, 0, 96, 0.1),
+            0 14px 40px rgba(80, 0, 96, 0.12);
+    }
+
+    .dash-stat-card .stat-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        padding-top: 0.2rem;
+    }
+
+    .dash-stat-card .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(80, 0, 96, 0.12), rgba(80, 0, 96, 0.06));
+        color: #500060;
+        flex-shrink: 0;
+    }
+
+    .dash-stat-card .stat-chevron {
+        color: #c4b8cc;
+        opacity: 0;
+        transform: translateX(-4px);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .dash-stat-card:hover .stat-chevron {
+        opacity: 1;
+        transform: translateX(0);
+        color: #500060;
+    }
+
+    .dash-stat-card .stat-label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #6b6570;
+        margin-bottom: 0.35rem;
+    }
+
+    .dash-stat-card .stat-value {
+        font-size: 2.35rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        color: #1a1020;
+        line-height: 1;
+    }
+
+    .dash-stat-card .stat-hint {
+        margin-top: 0.65rem;
+        font-size: 0.82rem;
+        color: #500060;
+        font-weight: 600;
+        opacity: 0.85;
+    }
+
+    .dash-quick {
+        background: linear-gradient(145deg, #ffffff 0%, #faf8fc 100%);
+        border-radius: 16px;
+        padding: 1.35rem 1.5rem;
+        border: 1px solid rgba(80, 0, 96, 0.08);
+        box-shadow: 0 4px 20px rgba(80, 0, 96, 0.06);
+    }
+
+    .dash-quick h2 {
+        margin: 0 0 1rem;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1a1020;
+        letter-spacing: -0.01em;
+    }
+
+    .dash-quick-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+    }
+
+    .dash-quick-links a {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.55rem 1rem;
+        border-radius: 10px;
+        background: rgba(80, 0, 96, 0.08);
+        color: #500060;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .dash-quick-links a:hover {
+        background: #500060;
+        color: #fff;
+    }
+</style>
+
+<div class="dash-page">
+    <header class="page-head">
+        <h1>Dashboard</h1>
+        <p>Overview of your catalog and content. Click a card to jump to that area of the admin.</p>
+    </header>
+
+    <div class="dash-stats">
+        <a class="dash-stat-card" href="{{ url_for('admin_views.services') }}">
+            <div class="stat-top">
+                <div class="stat-icon" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                    </svg>
+                </div>
+                <span class="stat-chevron" aria-hidden="true">→</span>
+            </div>
+            <div class="stat-label">Service categories</div>
+            <div class="stat-value">{{ stats.categories }}</div>
+            <div class="stat-hint">Manage services →</div>
+        </a>
+
+        <a class="dash-stat-card" href="{{ url_for('admin_views.services') }}">
+            <div class="stat-top">
+                <div class="stat-icon" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="8" y1="6" x2="21" y2="6"/>
+                        <line x1="8" y1="12" x2="21" y2="12"/>
+                        <line x1="8" y1="18" x2="21" y2="18"/>
+                        <line x1="3" y1="6" x2="3.01" y2="6"/>
+                        <line x1="3" y1="12" x2="3.01" y2="12"/>
+                        <line x1="3" y1="18" x2="3.01" y2="18"/>
+                    </svg>
+                </div>
+                <span class="stat-chevron" aria-hidden="true">→</span>
+            </div>
+            <div class="stat-label">Services</div>
+            <div class="stat-value">{{ stats.services }}</div>
+            <div class="stat-hint">Prices &amp; catalog →</div>
+        </a>
+
+        <a class="dash-stat-card" href="{{ url_for('admin_views.blog') }}">
+            <div class="stat-top">
+                <div class="stat-icon" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 20h9"/>
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                    </svg>
+                </div>
+                <span class="stat-chevron" aria-hidden="true">→</span>
+            </div>
+            <div class="stat-label">Blog posts</div>
+            <div class="stat-value">{{ stats.blog_total }}</div>
+            <div class="stat-hint">CMS editor →</div>
+        </a>
+
+        <a class="dash-stat-card" href="{{ url_for('admin_views.blog') }}">
+            <div class="stat-top">
+                <div class="stat-icon" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                </div>
+                <span class="stat-chevron" aria-hidden="true">→</span>
+            </div>
+            <div class="stat-label">Published</div>
+            <div class="stat-value">{{ stats.blog_published }}</div>
+            <div class="stat-hint">Live on website →</div>
+        </a>
+    </div>
+
+</div>
+{% endblock %}

@@ -450,6 +450,18 @@
     </div>
 </section>
 
+{% with flashes = get_flashed_messages(with_categories=true) %}
+{% if flashes %}
+<div class="container" style="margin-top: 1rem;">
+    <div class="flash-messages">
+        {% for category, text in flashes %}
+        <div class="flash-message flash-{{ category }}">{{ text }}</div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endwith %}
+
 <!-- Contact Info & Form -->
 <section class="contact-container">
     <div class="container">
@@ -519,7 +531,7 @@
                     Our team will respond within 24 hours. For urgent bookings, WhatsApp us directly.
                 </p>
 
-                <form id="contact-form">
+                <form id="contact-form" method="post" action="{{ url_for('contact') }}">
     <div class="form-row">
         <div class="form-group">
             <label for="name">Full Name *</label>
@@ -1041,35 +1053,6 @@
                 });
             });
         });
-document.getElementById("contact-form").addEventListener("submit", function(e) {
-    e.preventDefault();
-
-    let name = document.getElementById("name").value.trim();
-    let email = document.getElementById("email").value.trim();
-    let subject = document.getElementById("subject").value.trim();
-    let message = document.getElementById("message").value.trim();
-
-    if (!name || !email || !subject || !message) {
-        alert("Please fill all required fields.");
-        return;
-    }
-
-    let whatsappNumber = "917039008000"; // India number without + sign
-
-    let whatsappMessage = 
-`🌿 *New Inquiry – Travaa Wellness* 🌿
-
-👤 *Name:* ${name}
-📧 *Email:* ${email}
-📌 *Subject:* ${subject}
-💬 *Message:* ${message}
-
-Sent from Travaa Wellness Website`;
-
-    let url = "https://wa.me/" + whatsappNumber + "?text=" + encodeURIComponent(whatsappMessage);
-
-    window.open(url, "_blank");
-});
- });
+    });
 </script>
 {% endblock %}

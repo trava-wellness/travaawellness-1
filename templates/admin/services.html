@@ -1,0 +1,493 @@
+{% extends "admin/base.html" %}
+{% block title %}Services{% endblock %}
+{% block content %}
+<style>
+    @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap");
+
+    .services-admin-page {
+        font-family: "Outfit", system-ui, sans-serif;
+    }
+
+    .services-admin-page .page-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .services-admin-page .page-head h1 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #1a1020;
+    }
+
+    .services-admin-page .page-head p {
+        margin: 0;
+        font-size: 0.95rem;
+        color: #6b6570;
+        font-weight: 500;
+    }
+
+    .services-admin-page .panel {
+        background: linear-gradient(145deg, #ffffff 0%, #faf8fc 100%);
+        border-radius: 14px;
+        padding: 1.35rem 1.5rem;
+        box-shadow:
+            0 1px 2px rgba(80, 0, 96, 0.06),
+            0 8px 24px rgba(80, 0, 96, 0.07);
+        border: 1px solid rgba(80, 0, 96, 0.08);
+        margin-bottom: 1rem;
+    }
+
+    .services-admin-page .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.65rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .services-admin-page .toolbar .search-wrap {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        min-width: 200px;
+        max-width: 440px;
+        background: #fff;
+        border: 1px solid rgba(80, 0, 96, 0.15);
+        border-radius: 10px;
+        padding: 0 0.35rem 0 0.75rem;
+        box-shadow: inset 0 1px 2px rgba(80, 0, 96, 0.04);
+    }
+
+    .services-admin-page .toolbar .search-wrap svg {
+        flex-shrink: 0;
+        opacity: 0.55;
+    }
+
+    .services-admin-page .toolbar input[type="text"] {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 0.65rem 0.5rem;
+        border: 0;
+        background: transparent;
+        font-family: inherit;
+        font-size: 0.95rem;
+        outline: none;
+    }
+
+    .services-admin-page .toolbar button[type="submit"] {
+        flex-shrink: 0;
+        padding: 0.65rem 1.1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-family: inherit;
+    }
+
+    .services-admin-page .toolbar .clear-link {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #500060;
+        text-decoration: none;
+    }
+
+    .services-admin-page .toolbar .clear-link:hover {
+        text-decoration: underline;
+    }
+
+    .services-admin-page .meta-line {
+        font-size: 0.82rem;
+        color: #6b6570;
+        margin-top: 0.85rem;
+        font-weight: 500;
+    }
+
+    .services-admin-page .table-scroll {
+        overflow-x: auto;
+        margin: 0 -0.25rem;
+        padding: 0 0.25rem;
+    }
+
+    .services-admin-page table.services-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 0.9rem;
+    }
+
+    .services-admin-page table.services-table thead th {
+        text-align: left;
+        padding: 0.75rem 1rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: #500060;
+        background: linear-gradient(180deg, rgba(80, 0, 96, 0.09) 0%, rgba(80, 0, 96, 0.04) 100%);
+        border-bottom: 2px solid rgba(80, 0, 96, 0.12);
+    }
+
+    .services-admin-page table.services-table thead th:first-child {
+        border-radius: 10px 0 0 0;
+    }
+
+    .services-admin-page table.services-table thead th:last-child {
+        border-radius: 0 10px 0 0;
+        text-align: right;
+    }
+
+    .services-admin-page table.services-table tbody td {
+        padding: 0.95rem 1rem;
+        border-bottom: 1px solid rgba(80, 0, 96, 0.06);
+        vertical-align: middle;
+        color: #2d2833;
+    }
+
+    .services-admin-page table.services-table tbody tr {
+        transition: background 0.15s ease;
+    }
+
+    .services-admin-page table.services-table tbody tr:hover {
+        background: rgba(80, 0, 96, 0.04);
+    }
+
+    .services-admin-page table.services-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .services-admin-page .service-name {
+        font-weight: 600;
+        color: #1a1020;
+        line-height: 1.35;
+    }
+
+    .services-admin-page .cat-pill {
+        display: inline-block;
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 0.32rem 0.65rem;
+        border-radius: 999px;
+        background: rgba(80, 0, 96, 0.1);
+        color: #500060;
+    }
+
+    .services-admin-page .price-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+        align-items: center;
+    }
+
+    .services-admin-page .price-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 0.28rem 0.5rem;
+        border-radius: 8px;
+        background: #fff;
+        border: 1px solid rgba(80, 0, 96, 0.12);
+        color: #3d3545;
+    }
+
+    .services-admin-page .price-chip span.m {
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #8b7a96;
+    }
+
+    .services-admin-page .price-chip.missing {
+        opacity: 0.55;
+        font-style: italic;
+        font-weight: 500;
+    }
+
+    .services-admin-page .edit-price-btn {
+        font-family: inherit;
+        font-weight: 600;
+        font-size: 0.82rem;
+        padding: 0.45rem 0.9rem;
+        border-radius: 8px;
+        border: 0;
+        cursor: pointer;
+        background: linear-gradient(135deg, #500060, #6d2482);
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(80, 0, 96, 0.35);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .services-admin-page .edit-price-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(80, 0, 96, 0.4);
+    }
+
+    .services-admin-page td.actions-cell {
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .services-admin-page .empty-row td {
+        text-align: center;
+        padding: 2.5rem 1rem !important;
+        color: #6b6570;
+        font-weight: 500;
+    }
+
+    .services-admin-page .pagination {
+        margin-top: 1.25rem;
+        flex-wrap: wrap;
+    }
+
+    /* Modal */
+    #price-modal-overlay.services-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(26, 16, 32, 0.55);
+        z-index: 3000;
+        backdrop-filter: blur(3px);
+        font-family: "Outfit", system-ui, sans-serif;
+    }
+
+    #price-modal-overlay .services-modal-panel {
+        background: linear-gradient(165deg, #fff 0%, #faf8fc 100%);
+        width: calc(100% - 32px);
+        max-width: 440px;
+        margin: 10vh auto;
+        border-radius: 16px;
+        padding: 1.5rem 1.5rem 1.35rem;
+        box-shadow: 0 20px 50px rgba(80, 0, 96, 0.2);
+        border: 1px solid rgba(80, 0, 96, 0.1);
+    }
+
+    #price-modal-overlay .services-modal-panel h3 {
+        margin: 0 0 1rem;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1a1020;
+    }
+
+    #price-modal-overlay .services-modal-panel label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #500060;
+        margin-top: 0.65rem;
+    }
+
+    #price-modal-overlay .services-modal-panel input[type="number"] {
+        margin-top: 0.35rem;
+        margin-bottom: 0.5rem;
+        border-radius: 10px;
+        border: 1px solid rgba(80, 0, 96, 0.15);
+        padding: 0.6rem 0.75rem;
+        font-family: inherit;
+    }
+
+    #price-modal-overlay .services-modal-actions {
+        display: flex;
+        gap: 0.65rem;
+        justify-content: flex-end;
+        margin-top: 1rem;
+    }
+
+    #price-modal-overlay .services-modal-actions button {
+        font-family: inherit;
+        font-weight: 600;
+        border-radius: 8px;
+        padding: 0.55rem 1rem;
+    }
+
+    #price-modal-overlay #price-modal-cancel {
+        background: #e8e4eb;
+        color: #3d3545;
+    }
+
+    #price-modal-overlay #price-modal-cancel:hover {
+        background: #ddd8e0;
+    }
+</style>
+
+<div class="services-admin-page">
+    <div class="panel">
+        <form class="toolbar" method="get" action="{{ url_for('admin_views.services') }}">
+            <div class="search-wrap">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#500060" stroke-width="2" aria-hidden="true">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input
+                    type="text"
+                    name="q"
+                    value="{{ q or '' }}"
+                    placeholder="Search by service or category"
+                    autocomplete="off"
+                >
+            </div>
+            <button type="submit">Search</button>
+            {% if q %}
+                <a class="clear-link" href="{{ url_for('admin_views.services') }}">Clear</a>
+            {% endif %}
+        </form>
+
+        {% if pagination.total is defined and pagination.total %}
+            <p class="meta-line">
+                Showing
+                {{ (pagination.page - 1) * pagination.per_page + 1 }}–{{ [pagination.page * pagination.per_page, pagination.total] | min }}
+                of {{ pagination.total }} service{% if pagination.total != 1 %}s{% endif %}
+                {% if q %}<span style="color:#500060;">(filtered)</span>{% endif %}
+            </p>
+        {% endif %}
+
+        <div class="table-scroll">
+            <table class="services-table">
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Category</th>
+                        <th>Prices (30 / 60 / 90 min)</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for service in services %}
+                    <tr>
+                        <td><span class="service-name">{{ service.name }}</span></td>
+                        <td>
+                            {% if service.category %}
+                                <span class="cat-pill">{{ service.category.name }}</span>
+                            {% else %}
+                                <span class="cat-pill" style="opacity:.5;">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="price-row">
+                                <span class="price-chip {% if service.price_30 is none %}missing{% endif %}">
+                                    <span class="m">30′</span>
+                                    {% if service.price_30 is not none %}Rs. {{ service.price_30 }}{% else %}—{% endif %}
+                                </span>
+                                <span class="price-chip {% if service.price_60 is none %}missing{% endif %}">
+                                    <span class="m">60′</span>
+                                    {% if service.price_60 is not none %}Rs. {{ service.price_60 }}{% else %}—{% endif %}
+                                </span>
+                                <span class="price-chip {% if service.price_90 is none %}missing{% endif %}">
+                                    <span class="m">90′</span>
+                                    {% if service.price_90 is not none %}Rs. {{ service.price_90 }}{% else %}—{% endif %}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="actions-cell">
+                            <button
+                                type="button"
+                                class="edit-price-btn"
+                                data-service-id="{{ service.id }}"
+                                data-service-name="{{ service.name }}"
+                                data-price-30="{{ service.price_30 if service.price_30 is not none else '' }}"
+                                data-price-60="{{ service.price_60 if service.price_60 is not none else '' }}"
+                                data-price-90="{{ service.price_90 if service.price_90 is not none else '' }}"
+                            >
+                                Edit
+                            </button>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr class="empty-row">
+                        <td colspan="4">
+                            {% if q %}No services match your search.{% else %}No services in the catalog yet.{% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if pagination.pages > 1 %}
+        <div class="pagination">
+            {% if pagination.has_prev %}
+                <a href="{{ url_for('admin_views.services', page=pagination.prev_num, q=q) }}">Prev</a>
+            {% endif %}
+            {% for page_num in pagination.iter_pages(left_edge=1, left_current=1, right_current=2, right_edge=1) %}
+                {% if page_num %}
+                    <a href="{{ url_for('admin_views.services', page=page_num, q=q) }}" class="{{ 'active' if page_num == pagination.page else '' }}">{{ page_num }}</a>
+                {% else %}
+                    <span>...</span>
+                {% endif %}
+            {% endfor %}
+            {% if pagination.has_next %}
+                <a href="{{ url_for('admin_views.services', page=pagination.next_num, q=q) }}">Next</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div id="price-modal-overlay" class="services-modal-overlay">
+    <div class="services-modal-panel" role="dialog" aria-modal="true" aria-labelledby="price-modal-title">
+        <h3 id="price-modal-title">Edit Price</h3>
+        <form id="price-modal-form" method="post">
+            <label for="price-input-30">Price (30 minutes)</label>
+            <input id="price-input-30" type="number" name="price_30" min="1" step="1">
+            <label for="price-input-60">Price (60 minutes)</label>
+            <input id="price-input-60" type="number" name="price_60" min="1" step="1">
+            <label for="price-input-90">Price (90 minutes)</label>
+            <input id="price-input-90" type="number" name="price_90" min="1" step="1">
+            <div class="services-modal-actions">
+                <button type="button" id="price-modal-cancel">Cancel</button>
+                <button type="submit">Save Price</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const overlay = document.getElementById("price-modal-overlay");
+    const form = document.getElementById("price-modal-form");
+    const title = document.getElementById("price-modal-title");
+    const priceInput30 = document.getElementById("price-input-30");
+    const priceInput60 = document.getElementById("price-input-60");
+    const priceInput90 = document.getElementById("price-input-90");
+    const cancelBtn = document.getElementById("price-modal-cancel");
+    const page = "{{ pagination.page }}";
+    const q = "{{ q or '' }}";
+
+    document.querySelectorAll(".edit-price-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const serviceId = btn.getAttribute("data-service-id");
+            const serviceName = btn.getAttribute("data-service-name");
+            const price30 = btn.getAttribute("data-price-30");
+            const price60 = btn.getAttribute("data-price-60");
+            const price90 = btn.getAttribute("data-price-90");
+
+            title.textContent = `Edit Price — ${serviceName}`;
+            priceInput30.value = price30;
+            priceInput60.value = price60;
+            priceInput90.value = price90;
+            const searchPart = q ? `&q=${encodeURIComponent(q)}` : "";
+            form.action = `/admin/services/${serviceId}/price?page=${page}${searchPart}`;
+            overlay.style.display = "block";
+        });
+    });
+
+    cancelBtn.addEventListener("click", () => {
+        overlay.style.display = "none";
+    });
+
+    overlay.addEventListener("click", (event) => {
+        if (event.target === overlay) {
+            overlay.style.display = "none";
+        }
+    });
+});
+</script>
+{% endblock %}

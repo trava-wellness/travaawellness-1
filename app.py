@@ -1,17 +1,27 @@
-from flask import Flask, render_template, request, redirect, send_from_directory, url_for, flash
+from flask import Flask, render_template, request, redirect, send_from_directory, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from flask_cors import CORS
+from flask_migrate import Migrate
+from datetime import datetime, timedelta
 import urllib.parse
 import os
+import re
+import sys
 from config import Config
+
+# When running `python app.py`, expose this module as `app`
+# so route modules importing `app` don't create a second module instance.
+sys.modules.setdefault("app", sys.modules[__name__])
 
 app = Flask(__name__)
 app.config.from_object(Config)
+CORS(app, resources={r"/api/*": {"origins": os.environ.get("FRONTEND_ORIGIN", "*")}})
 
 # Ensure database directory exists
 os.makedirs('database', exist_ok=True)
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # Database Models
 class Booking(db.Model):
@@ -83,10 +93,154 @@ class Testimonial(db.Model):
             'is_featured': self.is_featured
         }
 
+
+class AdminUser(db.Model):
+    __tablename__ = "admin_users"
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+
+class ServiceCategory(db.Model):
+    __tablename__ = "service_categories"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    slug = db.Column(db.String(120), unique=True, nullable=False)
+    sort_order = db.Column(db.Integer, default=0, nullable=False)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    services = db.relationship(
+        "ServiceItem",
+        backref="category",
+        lazy=True,
+        order_by="ServiceItem.sort_order.asc(), ServiceItem.name.asc()",
+        cascade="all, delete-orphan",
+    )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "slug": self.slug,
+            "sort_order": self.sort_order,
+            "is_active": self.is_active,
+        }
+
+
+class ServiceItem(db.Model):
+    __tablename__ = "services"
+    id = db.Column(db.Integer, primary_key=True)
+    category_id = db.Column(db.Integer, db.ForeignKey("service_categories.id"), nullable=False, index=True)
+    name = db.Column(db.String(160), nullable=False)
+    slug = db.Column(db.String(180), unique=True, nullable=False)
+    price_30 = db.Column(db.Integer)
+    price_60 = db.Column(db.Integer)
+    price_90 = db.Column(db.Integer)
+    description = db.Column(db.Text)
+    sort_order = db.Column(db.Integer, default=0, nullable=False)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "category_id": self.category_id,
+            "name": self.name,
+            "slug": self.slug,
+            "price_30": self.price_30,
+            "price_60": self.price_60,
+            "price_90": self.price_90,
+            "description": self.description,
+            "sort_order": self.sort_order,
+            "is_active": self.is_active,
+        }
+
+
+class AboutPage(db.Model):
+    __tablename__ = "about_pages"
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False, default="About Travaa Wellness")
+    subtitle = db.Column(db.String(255))
+    hero_image_url = db.Column(db.String(400))
+    intro_html = db.Column(db.Text, default="")
+    mission_html = db.Column(db.Text, default="")
+    vision_html = db.Column(db.Text, default="")
+    section_json = db.Column(db.Text, default="{}")
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "subtitle": self.subtitle,
+            "hero_image_url": self.hero_image_url,
+            "intro_html": self.intro_html,
+            "mission_html": self.mission_html,
+            "vision_html": self.vision_html,
+            "section_json": self.section_json or "{}",
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class CmsBlogPost(db.Model):
+    __tablename__ = "cms_blog_posts"
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(220), nullable=False)
+    slug = db.Column(db.String(240), unique=True, nullable=False)
+    description = db.Column(db.Text, nullable=False, default="")
+    content_html = db.Column(db.Text, nullable=False, default="")
+    featured_image_url = db.Column(db.String(400))
+    status = db.Column(db.String(20), nullable=False, default="draft")
+    published_at = db.Column(db.DateTime)
+    created_by = db.Column(db.Integer, db.ForeignKey("admin_users.id"))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    admin = db.relationship("AdminUser", backref="blog_posts", lazy=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "slug": self.slug,
+            "description": self.description,
+            "content_html": self.content_html,
+            "featured_image_url": self.featured_image_url,
+            "status": self.status,
+            "published_at": self.published_at.isoformat() if self.published_at else None,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+def slugify(value):
+    value = (value or "").strip().lower()
+    value = re.sub(r"[^a-z0-9]+", "-", value)
+    return value.strip("-")
+
+
+def purge_old_contact_messages():
+    """Drop contact leads older than 10 days (light retention)."""
+    cutoff = datetime.utcnow() - timedelta(days=10)
+    try:
+        ContactMessage.query.filter(ContactMessage.created_at < cutoff).delete(synchronize_session=False)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"purge_old_contact_messages: {e}")
+
+
 # Create database tables
 with app.app_context():
     db.create_all()
     print("Database tables created successfully!")
+    purge_old_contact_messages()
 
 # Service Data
 SERVICES_DATA = {
@@ -167,6 +321,100 @@ SERVICES_DATA = {
         "Animal Print Art"
     ]
 }
+
+SERVICE_PRICE_PRESET = {
+    "Aroma Massage": (2400, 3000, 3600),
+    "Swedish Massage": (2450, 3200, 3800),
+    "Deep Tissue Massage": (2600, 3400, 4000),
+    "Balinese Massage": (2600, 3400, 4000),
+    "Thai Dry Massage": (2600, 3400, 4000),
+    "Four Hand Massage": (5200, 6800, 8000),
+    "Signature Massage": (None, 3800, 4800),
+    "Herbal Massage Potli": (None, 4000, 5000),
+    "Hot Stone Massage": (None, 4000, 5000),
+    "Foot Massage": (1400, 2000, 2600),
+    "Back Massage": (1600, 1800, 2800),
+    "Head Massage": (1400, 2000, 2600),
+    "Head, Shoulder & Back Massage": (1700, 2000, 2800),
+    "Hot Stone Foot Massage": (1800, 2200, 3000),
+    "Foot Massage + Scrub": (1600, 2000, 2400),
+    "Balinese Foot Ritual": (None, 2000, 2800),
+    "Facial": (None, 2400, None),
+    "Facial Premium": (None, 3000, None),
+    "Body Scrub": (1800, 2200, 2800),
+    "Body Scrub + Body Polishing + Body Wrap": (None, 4000, 5000),
+    "Bubble Jacuzzi": (None, 2400, 3000),
+    "Salt Bath (Single / Couple)": (None, 900, 1800),
+    "Bath Bomb Jacuzzi": (None, 1100, 2100),
+    "Ice Bath Therapy": (None, 1400, 2400),
+}
+
+DEFAULT_CATEGORY_PRICING = {
+    "Spa": (1800, 2600, 3400),
+    "Body": (1200, 1800, 2400),
+    "Skin": (1000, 1800, 2600),
+    "Nails": (500, 900, 1400),
+}
+
+
+def get_initial_prices(category_name, service_name):
+    preset = SERVICE_PRICE_PRESET.get(service_name)
+    if preset:
+        return preset
+    return DEFAULT_CATEGORY_PRICING.get(category_name, (1000, 1500, 2200))
+
+
+def seed_services_catalog():
+    if ServiceCategory.query.first() or ServiceItem.query.first():
+        return
+
+    sort_category = 0
+    for category_name, service_names in SERVICES_DATA.items():
+        category = ServiceCategory(
+            name=category_name,
+            slug=slugify(category_name),
+            sort_order=sort_category,
+            is_active=True,
+        )
+        db.session.add(category)
+        db.session.flush()
+
+        for sort_service, service_name in enumerate(service_names):
+            p30, p60, p90 = get_initial_prices(category_name, service_name)
+            service = ServiceItem(
+                category_id=category.id,
+                name=service_name,
+                slug=slugify(f"{category_name}-{service_name}"),
+                price_30=p30,
+                price_60=p60,
+                price_90=p90,
+                sort_order=sort_service,
+                is_active=True,
+            )
+            db.session.add(service)
+        sort_category += 1
+    db.session.commit()
+
+
+def backfill_missing_service_prices():
+    services = ServiceItem.query.all()
+    changed = False
+    for service in services:
+        category_name = service.category.name if service.category else ""
+        p30, p60, p90 = get_initial_prices(category_name, service.name)
+
+        if service.price_30 is None and p30 is not None:
+            service.price_30 = p30
+            changed = True
+        if service.price_60 is None and p60 is not None:
+            service.price_60 = p60
+            changed = True
+        if service.price_90 is None and p90 is not None:
+            service.price_90 = p90
+            changed = True
+
+    if changed:
+        db.session.commit()
 
 
 # Sample Blog Posts Data
@@ -389,20 +637,94 @@ def safe_strftime(date_obj, format_str):
         return date_obj.strftime(format_str)
     return ""
 
+
+def get_dynamic_services_data():
+    categories = (
+        ServiceCategory.query.filter_by(is_active=True)
+        .order_by(ServiceCategory.sort_order.asc(), ServiceCategory.name.asc())
+        .all()
+    )
+    if not categories:
+        return SERVICES_DATA
+
+    result = {}
+    for category in categories:
+        services = [
+            service.name
+            for service in category.services
+            if service.is_active
+        ]
+        if services:
+            result[category.name] = services
+    return result or SERVICES_DATA
+
+
+def get_about_page_data():
+    about = AboutPage.query.order_by(AboutPage.id.asc()).first()
+    if about:
+        return about.to_dict()
+
+    return {
+        "title": "About Travaa Wellness",
+        "subtitle": "Luxury wellness, curated for balance and rejuvenation.",
+        "hero_image_url": "/static/images/contact-bg.jpg",
+        "intro_html": "<p>Travaa Wellness is designed as a premium wellness sanctuary where personalized care meets luxury ambience.</p>",
+        "mission_html": "<p>To provide high-quality wellness experiences that support physical and mental wellbeing.</p>",
+        "vision_html": "<p>To become the most trusted holistic wellness destination for families and individuals.</p>",
+        "section_json": "{}",
+    }
+
+
+def get_published_blog_posts():
+    """Published CMS rows plus built-in POSTS for any slug not already in CMS (merged, newest first)."""
+    cms_posts = (
+        CmsBlogPost.query.filter_by(status="published")
+        .order_by(CmsBlogPost.published_at.desc().nullslast(), CmsBlogPost.created_at.desc())
+        .all()
+    )
+
+    transformed = []
+    cms_slugs = set()
+    for post in cms_posts:
+        cms_slugs.add(post.slug)
+        transformed.append(
+            {
+                "slug": post.slug,
+                "title": post.title,
+                "category": "Wellness",
+                "author": "Travaa Wellness Team",
+                "created_at": post.published_at or post.created_at,
+                "excerpt": post.description,
+                "tags": [],
+                "content": post.content_html,
+                "image_url": post.featured_image_url,
+            }
+        )
+
+    for p in POSTS:
+        if p["slug"] in cms_slugs:
+            continue
+        transformed.append(
+            {
+                "slug": p["slug"],
+                "title": p["title"],
+                "category": p["category"],
+                "author": p["author"],
+                "created_at": p["created_at"],
+                "excerpt": p["excerpt"],
+                "tags": p.get("tags") or [],
+                "content": (p.get("content") or "").strip(),
+                "image_url": p.get("image_url"),
+            }
+        )
+
+    transformed.sort(key=lambda x: x["created_at"], reverse=True)
+    return transformed
+
 # Routes
 @app.route('/')
 def home():
-    # Get blog posts from database or use sample data
-    try:
-        featured_posts = BlogPost.query.filter_by(is_published=True).order_by(BlogPost.created_at.desc()).limit(3).all()
-        if not featured_posts:
-            featured_posts = SAMPLE_BLOG_POSTS
-        else:
-            # Convert to dict format for consistency
-            featured_posts = [post.to_dict() for post in featured_posts]
-    except Exception as e:
-        print(f"Error fetching blog posts: {e}")
-        featured_posts = SAMPLE_BLOG_POSTS
+    featured_posts = get_published_blog_posts()[:3]
     
     # Get testimonials from database or use sample data
     try:
@@ -417,14 +739,19 @@ def home():
         testimonials = SAMPLE_TESTIMONIALS
     
     return render_template('index.html', 
-                         services=SERVICES_DATA,
+                         services=get_dynamic_services_data(),
                          posts=featured_posts,
                          testimonials=testimonials,
                          safe_strftime=safe_strftime)
 
 @app.route('/services')
 def services():
-    return render_template('services.html', services=SERVICES_DATA)
+    return render_template('services.html', services=get_dynamic_services_data())
+
+
+@app.route('/services-data')
+def services_data():
+    return jsonify(get_dynamic_services_data())
 
 @app.route('/gallery')
 def gallery():
@@ -488,6 +815,11 @@ Please contact them within 24 hours.
         return redirect(whatsapp_url)
 
     return render_template('franchise.html')
+
+
+@app.route('/about')
+def about():
+    return render_template("about.html", about=get_about_page_data())
 
 
 from flask import Flask, render_template, abort
@@ -655,15 +987,49 @@ POSTS = [
 ]
 
 
+def seed_legacy_blog_posts():
+    """Insert built-in POSTS into cms_blog_posts when each slug is missing so they appear in admin and stay editable."""
+    try:
+        existing_slugs = {row[0] for row in CmsBlogPost.query.with_entities(CmsBlogPost.slug).all()}
+        any_added = False
+        for p in POSTS:
+            slug = p["slug"]
+            if slug in existing_slugs:
+                continue
+            body = (p.get("content") or "").strip()
+            excerpt = (p.get("excerpt") or "").strip()
+            created = p.get("created_at") or datetime.utcnow()
+            row = CmsBlogPost(
+                title=(p.get("title") or "Untitled")[:220],
+                slug=slug[:240],
+                description=excerpt,
+                content_html=body,
+                featured_image_url=(p.get("image_url") or "").strip() or None,
+                status="published",
+                published_at=created,
+            )
+            db.session.add(row)
+            existing_slugs.add(slug)
+            any_added = True
+        if any_added:
+            db.session.commit()
+            print("Seeded missing legacy blog posts into cms_blog_posts")
+    except Exception as e:
+        db.session.rollback()
+        print(f"seed_legacy_blog_posts: {e}")
+
+
 @app.route("/blog")
 def blog():
-    categories = sorted({post["category"] for post in POSTS})
-    return render_template("blog.html", posts=POSTS, categories=categories)
+    posts = get_published_blog_posts()
+    categories = sorted({post["category"] for post in posts})
+    return render_template("blog.html", posts=posts, categories=categories)
 
 
 @app.route("/blog/<slug>")
 def blog_post(slug):
-    post = next((p for p in POSTS if p["slug"] == slug), None)
+    posts = get_published_blog_posts()
+    post = next((p for p in posts if p["slug"] == slug), None)
     if not post:
         abort(404)
 
@@ -671,7 +1037,7 @@ def blog_post(slug):
     return render_template(
         "blog_post.html",
         post=post,
-        posts=sorted(POSTS, key=lambda x: x["created_at"], reverse=True),
+        posts=sorted(posts, key=lambda x: x["created_at"], reverse=True),
     )
 
 @app.route('/booking', methods=['GET', 'POST'])
@@ -728,35 +1094,40 @@ Notes: {notes if notes else 'None'}"""
             flash('There was an error processing your booking. Please try again.', 'error')
             return redirect(url_for('booking'))
     
-    return render_template('booking.html', services=SERVICES_DATA)
+    return render_template('booking.html', services=get_dynamic_services_data())
 
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
     if request.method == 'POST':
         try:
-            name = request.form.get('name')
-            email = request.form.get('email')
-            subject = request.form.get('subject')
-            message = request.form.get('message')
-            
+            name = (request.form.get('name') or '').strip()
+            email = (request.form.get('email') or '').strip()
+            subject = (request.form.get('subject') or '').strip()
+            message = (request.form.get('message') or '').strip()
+            if not name or not email or not subject or not message:
+                flash('Please fill in all fields.', 'error')
+                return redirect(url_for('contact'))
+
             contact_msg = ContactMessage(
                 name=name,
                 email=email,
                 subject=subject,
                 message=message
             )
-            
+
             db.session.add(contact_msg)
             db.session.commit()
-            
+            purge_old_contact_messages()
+
             flash('Your message has been sent successfully! We will get back to you within 24 hours.', 'success')
             return redirect(url_for('contact'))
-            
+
         except Exception as e:
             print(f"Error saving contact message: {e}")
+            db.session.rollback()
             flash('There was an error sending your message. Please try again.', 'error')
             return redirect(url_for('contact'))
-    
+
     return render_template('contact.html')
 
 @app.route('/init-sample-data')
@@ -838,6 +1209,21 @@ def page_not_found(e):
 @app.errorhandler(500)
 def internal_server_error(e):
     return render_template('500.html'), 500
+
+
+from routes.public_api import public_api
+from routes.admin_api import admin_api, seed_default_admin
+from routes.admin_views import admin_views
+
+app.register_blueprint(public_api)
+app.register_blueprint(admin_api)
+app.register_blueprint(admin_views)
+
+with app.app_context():
+    seed_default_admin()
+    seed_services_catalog()
+    backfill_missing_service_prices()
+    seed_legacy_blog_posts()
 
 if __name__ == '__main__':
     # Create necessary directories

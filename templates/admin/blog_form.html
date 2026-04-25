@@ -1,0 +1,253 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ "Edit Blog Post" if post else "Create Blog Post" }}{% endblock %}
+{% block content %}
+<style>
+    @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap");
+
+    .blog-form-page {
+        font-family: "Outfit", system-ui, sans-serif;
+        max-width: 920px;
+    }
+
+    .blog-form-page .page-head {
+        margin-bottom: 1.25rem;
+    }
+
+    .blog-form-page .page-head h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.75rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #1a1020;
+    }
+
+    .blog-form-page .page-head p {
+        margin: 0;
+        font-size: 0.95rem;
+        color: #6b6570;
+        font-weight: 500;
+    }
+
+    .blog-form-page .panel {
+        background: linear-gradient(145deg, #ffffff 0%, #faf8fc 100%);
+        border-radius: 14px;
+        padding: 1.5rem 1.65rem 1.65rem;
+        box-shadow:
+            0 1px 2px rgba(80, 0, 96, 0.06),
+            0 8px 24px rgba(80, 0, 96, 0.07);
+        border: 1px solid rgba(80, 0, 96, 0.08);
+    }
+
+    .blog-form-page .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem 1.25rem;
+    }
+
+    @media (max-width: 720px) {
+        .blog-form-page .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .blog-form-page .field {
+        margin-bottom: 0.15rem;
+    }
+
+    .blog-form-page .field.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .blog-form-page label {
+        display: block;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: #500060;
+        margin-bottom: 0.35rem;
+    }
+
+    .blog-form-page input[type="text"],
+    .blog-form-page textarea,
+    .blog-form-page select {
+        width: 100%;
+        margin: 0 0 0.85rem;
+        padding: 0.65rem 0.85rem;
+        border-radius: 10px;
+        border: 1px solid rgba(80, 0, 96, 0.15);
+        font-family: inherit;
+        font-size: 0.95rem;
+        box-sizing: border-box;
+        background: #fff;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .blog-form-page input[type="text"]:focus,
+    .blog-form-page textarea:focus,
+    .blog-form-page select:focus {
+        outline: none;
+        border-color: #500060;
+        box-shadow: 0 0 0 3px rgba(80, 0, 96, 0.12);
+    }
+
+    .blog-form-page textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .blog-form-page .hint {
+        font-size: 0.8rem;
+        color: #6b6570;
+        margin: -0.5rem 0 1rem;
+        line-height: 1.45;
+    }
+
+    .blog-form-page .editor-wrap {
+        margin-bottom: 1rem;
+    }
+
+    .blog-form-page .editor-wrap .cke {
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid rgba(80, 0, 96, 0.12) !important;
+    }
+
+    .blog-form-page .actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 1.25rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(80, 0, 96, 0.08);
+    }
+
+    .blog-form-page .actions button[type="submit"] {
+        font-family: inherit;
+        font-weight: 600;
+        padding: 0.65rem 1.35rem;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #500060, #6d2482);
+        box-shadow: 0 4px 14px rgba(80, 0, 96, 0.35);
+        border: 0;
+        cursor: pointer;
+    }
+
+    .blog-form-page .actions button[type="submit"]:hover {
+        filter: brightness(1.05);
+    }
+
+    .blog-form-page .actions a.back {
+        font-weight: 600;
+        color: #500060;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+
+    .blog-form-page .actions a.back:hover {
+        text-decoration: underline;
+    }
+
+    .blog-form-page .status-pill-wrap select {
+        max-width: 220px;
+    }
+</style>
+
+<div class="blog-form-page">
+    <div class="page-head">
+        <h1>{{ "Edit blog post" if post else "Create blog post" }}</h1>
+        <p>Write in the editor below — formatting is saved and shown on your public blog page.</p>
+    </div>
+
+    <div class="panel">
+        <form method="post" action="{{ url_for('admin_views.blog_save') }}" id="blog-post-form">
+            {% if post %}<input type="hidden" name="id" value="{{ post.id }}">{% endif %}
+
+            <div class="form-grid">
+                <div class="field full-width">
+                    <label for="blog-title">Title</label>
+                    <input id="blog-title" type="text" name="title" value="{{ post.title if post else '' }}" required placeholder="Post headline">
+                </div>
+
+                <div class="field">
+                    <label for="blog-slug">URL slug</label>
+                    <input id="blog-slug" type="text" name="slug" value="{{ post.slug if post else '' }}" placeholder="auto-from-title if empty">
+                    <p class="hint">Leave blank to generate from the title. Used in <code>/blog/your-slug</code>.</p>
+                </div>
+
+                <div class="field status-pill-wrap">
+                    <label for="blog-status">Status</label>
+                    <select id="blog-status" name="status">
+                        {% set current_status = post.status if post else 'draft' %}
+                        <option value="draft" {{ "selected" if current_status == "draft" else "" }}>Draft</option>
+                        <option value="published" {{ "selected" if current_status == "published" else "" }}>Published</option>
+                        <option value="archived" {{ "selected" if current_status == "archived" else "" }}>Archived</option>
+                    </select>
+                </div>
+
+                <div class="field full-width">
+                    <label for="blog-description">Short description</label>
+                    <textarea id="blog-description" name="description" rows="3" placeholder="Summary for listings and SEO">{{ post.description if post else '' }}</textarea>
+                </div>
+
+                <div class="field full-width">
+                    <label for="blog-featured">Featured image URL</label>
+                    <input id="blog-featured" type="text" name="featured_image_url" value="{{ post.featured_image_url if post else '' }}" placeholder="https://…">
+                    <p class="hint">Shown at the top of the article. For images inside the body, use the editor’s Image button and paste a hosted image URL.</p>
+                </div>
+
+                <div class="field full-width editor-wrap">
+                    <label for="content_html">Article content</label>
+                    <p class="hint" style="margin-top:0;">Bold, lists, alignment, fonts, colors, links, and images — no raw HTML required.</p>
+                    <textarea id="content_html" name="content_html" rows="14">{{ (post.content_html if post else '') | e }}</textarea>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="submit">Save blog post</button>
+                <a class="back" href="{{ url_for('admin_views.blog') }}">← Back to all posts</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.ckeditor.com/4.22.1/full/ckeditor.js"></script>
+<script>
+(function () {
+    if (typeof CKEDITOR === "undefined") {
+        return;
+    }
+    CKEDITOR.replace("content_html", {
+        height: 420,
+        removePlugins: "elementspath",
+        resize_enabled: true,
+        contentsCss: [
+            "https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap",
+            "body{font-family:Outfit,system-ui,sans-serif;font-size:15px;padding:12px;color:#2d2833;}"
+        ],
+        toolbar: [
+            { name: "styles", items: ["Format", "Font", "FontSize"] },
+            { name: "colors", items: ["TextColor", "BGColor"] },
+            { name: "basicstyles", items: ["Bold", "Italic", "Underline", "Strike", "Subscript", "Superscript", "-", "RemoveFormat"] },
+            { name: "paragraph", items: ["NumberedList", "BulletedList", "-", "Outdent", "Indent", "-", "Blockquote", "-", "JustifyLeft", "JustifyCenter", "JustifyRight", "JustifyBlock"] },
+            { name: "links", items: ["Link", "Unlink"] },
+            { name: "insert", items: ["Image", "Table", "HorizontalRule", "SpecialChar"] },
+            { name: "document", items: ["Undo", "Redo", "-", "Maximize"] }
+        ],
+        format_tags: "p;h2;h3;h4;pre",
+        font_names: "Outfit/Outfit,system-ui,sans-serif;Arial/Arial,Helvetica,sans-serif;Georgia/Georgia,serif;Times New Roman/Times New Roman,Times,serif;Courier New/Courier New,monospace",
+        image_previewText: " ",
+        removeDialogTabs: "image:advanced",
+        enterMode: CKEDITOR.ENTER_P,
+        shiftEnterMode: CKEDITOR.ENTER_BR
+    });
+
+    document.getElementById("blog-post-form").addEventListener("submit", function () {
+        if (typeof CKEDITOR !== "undefined" && CKEDITOR.instances.content_html) {
+            CKEDITOR.instances.content_html.updateElement();
+        }
+    });
+})();
+</script>
+{% endblock %}

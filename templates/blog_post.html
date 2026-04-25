@@ -71,6 +71,7 @@
         font-size: 1rem;
         line-height: 1.8;
         color: var(--gray);
+        overflow-x: auto;
     }
 
     .post-content h2,
@@ -91,6 +92,121 @@
 
     .post-content li {
         margin-bottom: 0.3rem;
+    }
+
+    /* Rich text / editor output (CKEditor & similar) */
+    .post-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 12px;
+        margin: 1rem 0;
+    }
+
+    .post-content figure {
+        margin: 1.25rem 0;
+    }
+
+    .post-content figure img {
+        margin: 0;
+    }
+
+    .post-content figcaption {
+        font-size: 0.85rem;
+        color: var(--gray);
+        margin-top: 0.5rem;
+        text-align: center;
+    }
+
+    .post-content table {
+        width: 100%;
+        max-width: 100%;
+        border-collapse: collapse;
+        margin: 1.25rem 0;
+        font-size: 0.95rem;
+        table-layout: auto;
+    }
+
+    .post-content th,
+    .post-content td {
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        padding: 0.6rem 0.75rem;
+        text-align: left;
+    }
+
+    .post-content th {
+        background: var(--light-gray);
+        color: var(--black);
+        font-weight: 600;
+    }
+
+    .post-content blockquote {
+        margin: 1.25rem 0;
+        padding: 0.85rem 1.25rem;
+        border-left: 4px solid #500060;
+        background: rgba(80, 0, 96, 0.05);
+        border-radius: 0 10px 10px 0;
+        color: var(--gray);
+        font-style: italic;
+    }
+
+    .post-content pre {
+        margin: 1.25rem 0;
+        padding: 1rem 1.15rem;
+        background: #1a1020;
+        color: #f5f5f5;
+        border-radius: 10px;
+        overflow-x: auto;
+        font-size: 0.88rem;
+        line-height: 1.55;
+    }
+
+    .post-content code {
+        font-size: 0.9em;
+        padding: 0.15rem 0.4rem;
+        background: var(--light-gray);
+        border-radius: 4px;
+    }
+
+    .post-content pre code {
+        padding: 0;
+        background: transparent;
+        color: inherit;
+    }
+
+    .post-content h1 {
+        font-size: 1.85rem;
+        color: var(--black);
+        margin: 2rem 0 0.75rem;
+    }
+
+    .post-content h4,
+    .post-content h5 {
+        color: var(--black);
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .post-content hr {
+        border: 0;
+        height: 1px;
+        background: rgba(0, 0, 0, 0.08);
+        margin: 2rem 0;
+    }
+
+    .post-content a {
+        color: #500060;
+        font-weight: 600;
+    }
+
+    .post-content a:hover {
+        text-decoration: underline;
+    }
+
+    .post-content iframe,
+    .post-content video {
+        max-width: 100%;
+        border-radius: 12px;
+        margin: 1rem 0;
     }
 
     .post-footer {
@@ -413,6 +529,9 @@
         <div class="post-layout">
             <main>
                 <div class="post-content-wrapper">
+                    {% if post.image_url %}
+                    <img class="post-featured-img" src="{{ post.image_url }}" alt="{{ post.title }}">
+                    {% endif %}
 
                     <article class="post-content">
                         {{ post.content|safe }}

@@ -1570,5 +1570,56 @@ heroBtn.addEventListener("click", () => {
 });
 </script>
 
+<script>
+document.addEventListener("DOMContentLoaded", async function () {
+    try {
+        const response = await fetch("/api/v1/public/services");
+        if (!response.ok) return;
+        const payload = await response.json();
+        if (!payload || !payload.categories) return;
+
+        const priceByServiceName = {};
+        payload.categories.forEach((category) => {
+            (category.services || []).forEach((service) => {
+                priceByServiceName[(service.name || "").trim().toLowerCase()] = service;
+            });
+        });
+
+        document.querySelectorAll(".service-item").forEach((card) => {
+            const nameEl = card.querySelector(".service-name");
+            const durationEl = card.querySelector(".service-duration");
+            const priceEl = card.querySelector(".service-price");
+            if (!nameEl || !durationEl || !priceEl) return;
+
+            const key = nameEl.textContent.trim().toLowerCase();
+            const svc = priceByServiceName[key];
+            if (!svc) return;
+
+            const durations = [];
+            const prices = [];
+            if (svc.price_30 !== null && svc.price_30 !== undefined) {
+                durations.push("30");
+                prices.push(String(svc.price_30));
+            }
+            if (svc.price_60 !== null && svc.price_60 !== undefined) {
+                durations.push("60");
+                prices.push(String(svc.price_60));
+            }
+            if (svc.price_90 !== null && svc.price_90 !== undefined) {
+                durations.push("90");
+                prices.push(String(svc.price_90));
+            }
+
+            if (durations.length > 0) {
+                durationEl.textContent = `${durations.join(" / ")} minutes`;
+                priceEl.textContent = `Rs. ${prices.join(" / ")}`;
+            }
+        });
+    } catch (error) {
+        console.log("Dynamic price load skipped", error);
+    }
+});
+</script>
+
 {% endblock %}
 

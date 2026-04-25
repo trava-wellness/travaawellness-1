@@ -1,0 +1,24 @@
+{% extends "admin/base.html" %}
+{% block title %}About CMS{% endblock %}
+{% block content %}
+<h1>About Page Content</h1>
+<div class="card">
+    <form method="post" action="{{ url_for('admin_views.about_save') }}">
+        <label>Title</label>
+        <input name="title" value="{{ about.title if about else '' }}" required>
+        <label>Subtitle</label>
+        <input name="subtitle" value="{{ about.subtitle if about else '' }}">
+        <label>Hero Image URL</label>
+        <input name="hero_image_url" value="{{ about.hero_image_url if about else '' }}">
+        <label>Intro HTML</label>
+        <textarea name="intro_html" rows="6">{{ about.intro_html if about else '' }}</textarea>
+        <label>Mission HTML</label>
+        <textarea name="mission_html" rows="6">{{ about.mission_html if about else '' }}</textarea>
+        <label>Vision HTML</label>
+        <textarea name="vision_html" rows="6">{{ about.vision_html if about else '' }}</textarea>
+        <label>Extra JSON Section</label>
+        <textarea name="section_json" rows="6">{{ about.section_json if about else '{}' }}</textarea>
+        <button type="submit">Save About Content</button>
+    </form>
+</div>
+{% endblock %}

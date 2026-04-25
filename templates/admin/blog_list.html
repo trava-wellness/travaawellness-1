@@ -1,0 +1,259 @@
+{% extends "admin/base.html" %}
+{% block title %}Blog CMS{% endblock %}
+{% block content %}
+<style>
+    @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap");
+
+    .blog-admin-page {
+        font-family: "Outfit", system-ui, sans-serif;
+    }
+
+    .blog-admin-page .page-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .blog-admin-page .page-head h1 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #1a1020;
+    }
+
+    .blog-admin-page .page-head p {
+        margin: 0.35rem 0 0;
+        font-size: 0.95rem;
+        color: #6b6570;
+        font-weight: 500;
+        width: 100%;
+    }
+
+    .blog-admin-page .cta-panel {
+        background: linear-gradient(135deg, #500060, #6d2482);
+        border-radius: 14px;
+        padding: 1.15rem 1.35rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 8px 28px rgba(80, 0, 96, 0.35);
+    }
+
+    .blog-admin-page .cta-panel span {
+        color: rgba(255, 255, 255, 0.92);
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    .blog-admin-page .cta-panel .cta-new {
+        display: inline-block;
+        font-family: inherit;
+        font-weight: 600;
+        background: #fff;
+        color: #500060;
+        border: 0;
+        padding: 0.55rem 1.15rem;
+        border-radius: 10px;
+        cursor: pointer;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+        text-decoration: none;
+        font-size: 0.95rem;
+    }
+
+    .blog-admin-page .cta-panel .cta-new:hover {
+        filter: brightness(1.06);
+    }
+
+    .blog-admin-page .panel {
+        background: linear-gradient(145deg, #ffffff 0%, #faf8fc 100%);
+        border-radius: 14px;
+        padding: 1.25rem 1.5rem;
+        box-shadow:
+            0 1px 2px rgba(80, 0, 96, 0.06),
+            0 8px 24px rgba(80, 0, 96, 0.07);
+        border: 1px solid rgba(80, 0, 96, 0.08);
+    }
+
+    .blog-admin-page .table-scroll {
+        overflow-x: auto;
+        margin: 0 -0.25rem;
+        padding: 0 0.25rem;
+    }
+
+    .blog-admin-page table.blog-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 0.9rem;
+    }
+
+    .blog-admin-page table.blog-table thead th {
+        text-align: left;
+        padding: 0.75rem 1rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: #500060;
+        background: linear-gradient(180deg, rgba(80, 0, 96, 0.09) 0%, rgba(80, 0, 96, 0.04) 100%);
+        border-bottom: 2px solid rgba(80, 0, 96, 0.12);
+    }
+
+    .blog-admin-page table.blog-table thead th:first-child {
+        border-radius: 10px 0 0 0;
+    }
+
+    .blog-admin-page table.blog-table thead th:last-child {
+        border-radius: 0 10px 0 0;
+        text-align: right;
+    }
+
+    .blog-admin-page table.blog-table tbody td {
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid rgba(80, 0, 96, 0.06);
+        vertical-align: middle;
+        color: #2d2833;
+    }
+
+    .blog-admin-page table.blog-table tbody tr:hover {
+        background: rgba(80, 0, 96, 0.04);
+    }
+
+    .blog-admin-page table.blog-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .blog-admin-page .post-title {
+        font-weight: 600;
+        color: #1a1020;
+    }
+
+    .blog-admin-page .slug-cell {
+        font-size: 0.82rem;
+        color: #6b6570;
+        font-family: ui-monospace, monospace;
+        max-width: 220px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .blog-admin-page .status-pill {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 0.3rem 0.6rem;
+        border-radius: 999px;
+    }
+
+    .blog-admin-page .status-pill.published {
+        background: rgba(46, 125, 50, 0.15);
+        color: #1b5e20;
+    }
+
+    .blog-admin-page .status-pill.draft {
+        background: rgba(80, 0, 96, 0.12);
+        color: #500060;
+    }
+
+    .blog-admin-page .status-pill.archived {
+        background: rgba(97, 97, 97, 0.15);
+        color: #424242;
+    }
+
+    .blog-admin-page td.actions {
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .blog-admin-page td.actions a {
+        font-weight: 600;
+        color: #500060;
+        text-decoration: none;
+        margin-right: 0.75rem;
+        font-size: 0.88rem;
+    }
+
+    .blog-admin-page td.actions a:hover {
+        text-decoration: underline;
+    }
+
+    .blog-admin-page td.actions form {
+        display: inline;
+    }
+
+    .blog-admin-page td.actions form button {
+        font-family: inherit;
+        font-weight: 600;
+        font-size: 0.8rem;
+        padding: 0.35rem 0.65rem;
+        border-radius: 8px;
+    }
+
+    .blog-admin-page .empty-row td {
+        text-align: center;
+        padding: 2.25rem 1rem !important;
+        color: #6b6570;
+        font-weight: 500;
+    }
+</style>
+
+<div class="blog-admin-page">
+    <div class="page-head">
+        <div>
+            <h1>Blog posts</h1>
+            <p>Drafts and published articles from the CMS.</p>
+        </div>
+    </div>
+
+    <div class="cta-panel">
+        <span>Add a new story for the public blog.</span>
+        <a class="cta-new" href="{{ url_for('admin_views.blog_new') }}">+ Create new post</a>
+    </div>
+
+    <div class="panel">
+        <div class="table-scroll">
+            <table class="blog-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Slug</th>
+                        <th>Status</th>
+                        <th>Updated</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for post in posts %}
+                    <tr>
+                        <td><span class="post-title">{{ post.title }}</span></td>
+                        <td><span class="slug-cell" title="{{ post.slug }}">{{ post.slug }}</span></td>
+                        <td>
+                            <span class="status-pill {{ post.status }}">{{ post.status }}</span>
+                        </td>
+                        <td>{{ post.updated_at.strftime('%d %b %Y, %H:%M') if post.updated_at else "—" }}</td>
+                        <td class="actions">
+                            <a href="{{ url_for('admin_views.blog_edit', post_id=post.id) }}">Edit</a>
+                            <form method="post" action="{{ url_for('admin_views.blog_delete', post_id=post.id) }}" style="display:inline;" onsubmit="return confirm('Delete this post?');">
+                                <button class="btn-danger" type="submit">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr class="empty-row"><td colspan="5">No blog posts yet — create your first one above.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

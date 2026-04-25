@@ -1,0 +1,308 @@
+{% extends "admin/base.html" %}
+{% block title %}Contact Us Leads{% endblock %}
+{% block content %}
+<style>
+    @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap");
+
+    .contact-leads-page {
+        font-family: "Outfit", system-ui, sans-serif;
+    }
+
+    .contact-leads-page .page-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .contact-leads-page .page-head h1 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #1a1020;
+    }
+
+    .contact-leads-page .page-head p {
+        margin: 0;
+        font-size: 0.95rem;
+        color: #6b6570;
+        font-weight: 500;
+    }
+
+    .leads-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1.25rem;
+        align-items: stretch;
+    }
+
+    @media (max-width: 1024px) {
+        .leads-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 640px) {
+        .leads-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .lead-card {
+        background: linear-gradient(145deg, #ffffff 0%, #faf8fc 100%);
+        border-radius: 14px;
+        padding: 1.25rem 1.35rem;
+        box-shadow:
+            0 1px 2px rgba(80, 0, 96, 0.06),
+            0 8px 24px rgba(80, 0, 96, 0.08);
+        border: 1px solid rgba(80, 0, 96, 0.08);
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .lead-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #500060, #8b3d9e, #c76bff);
+        border-radius: 14px 14px 0 0;
+    }
+
+    .lead-card:hover {
+        transform: translateY(-2px);
+        box-shadow:
+            0 2px 4px rgba(80, 0, 96, 0.08),
+            0 12px 32px rgba(80, 0, 96, 0.12);
+    }
+
+    .lead-card__top {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.85rem;
+        margin-bottom: 1rem;
+        padding-top: 0.25rem;
+    }
+
+    .lead-card__avatar {
+        flex-shrink: 0;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #500060, #7c3a9a);
+        color: #fff;
+        font-weight: 700;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        letter-spacing: 0.02em;
+        box-shadow: 0 4px 12px rgba(80, 0, 96, 0.35);
+    }
+
+    .lead-card__title-block {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .lead-card__name {
+        margin: 0 0 0.35rem;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1a1020;
+        line-height: 1.25;
+        word-break: break-word;
+    }
+
+    .lead-card__subject-pill {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #500060;
+        background: rgba(80, 0, 96, 0.1);
+        padding: 0.28rem 0.55rem;
+        border-radius: 6px;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: bottom;
+    }
+
+    .lead-card__meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .lead-meta-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #4a4452;
+        line-height: 1.4;
+    }
+
+    .lead-meta-row svg {
+        flex-shrink: 0;
+        margin-top: 2px;
+        opacity: 0.85;
+    }
+
+    .lead-meta-row a {
+        color: #500060;
+        font-weight: 600;
+        text-decoration: none;
+        word-break: break-all;
+    }
+
+    .lead-meta-row a:hover {
+        text-decoration: underline;
+    }
+
+    .lead-meta-label {
+        font-weight: 600;
+        color: #6b6570;
+        min-width: 4.5rem;
+        flex-shrink: 0;
+    }
+
+    .lead-card__message-wrap {
+        border-radius: 10px;
+        background: rgba(80, 0, 96, 0.04);
+        border: 1px solid rgba(80, 0, 96, 0.07);
+        padding: 0.85rem 1rem;
+    }
+
+    .lead-card__message-label {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #500060;
+        margin-bottom: 0.45rem;
+        opacity: 0.9;
+    }
+
+    .lead-card__message {
+        margin: 0;
+        font-size: 0.9rem;
+        line-height: 1.55;
+        color: #2d2833;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    .lead-empty {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 3rem 1.5rem;
+        background: linear-gradient(145deg, #fff, #f8f6fa);
+        border-radius: 14px;
+        border: 2px dashed rgba(80, 0, 96, 0.15);
+        color: #6b6570;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    .lead-empty svg {
+        display: block;
+        margin: 0 auto 1rem;
+        opacity: 0.45;
+    }
+
+    .contact-leads-page .pagination {
+        margin-top: 1.75rem;
+    }
+</style>
+
+<div class="contact-leads-page">
+    <div class="page-head">
+        <h1>Contact Us Leads</h1>
+        <p>Inquiries from your website — newest first.</p>
+    </div>
+
+    <div class="leads-grid">
+        {% for msg in messages %}
+            {% set parts = (msg.name or "").strip().split() %}
+            {% set initials = (((parts[0][0] ~ parts[1][0]) if parts|length > 1 else (parts[0][0] if parts else "")) | upper) %}
+            <article class="lead-card">
+                <div class="lead-card__top">
+                    <div class="lead-card__avatar" aria-hidden="true">{{ initials if initials else "?" }}</div>
+                    <div class="lead-card__title-block">
+                        <h2 class="lead-card__name">{{ msg.name }}</h2>
+                        <span class="lead-card__subject-pill" title="{{ msg.subject }}">{{ msg.subject }}</span>
+                    </div>
+                </div>
+
+                <div class="lead-card__meta">
+                    <div class="lead-meta-row">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#500060" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                            <polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                        <span><span class="lead-meta-label"></span><a href="mailto:{{ msg.email }}">{{ msg.email }}</a></span>
+                    </div>
+                    <div class="lead-meta-row">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#500060" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        <span><span class="lead-meta-label"></span>{{ msg.created_at.strftime('%d %b %Y, %I:%M %p') if msg.created_at else "—" }}</span>
+                    </div>
+                </div>
+
+                <div class="lead-card__message-wrap">
+                    <div class="lead-card__message-label">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        Message
+                    </div>
+                    <p class="lead-card__message">{{ msg.message }}</p>
+                </div>
+            </article>
+        {% else %}
+            <div class="lead-empty">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#500060" stroke-width="1.5" aria-hidden="true">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                No contact messages yet. Submissions from the site will appear here in a three-column grid.
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+            <a href="{{ url_for('admin_views.contact_us', page=pagination.prev_num) }}">Prev</a>
+        {% endif %}
+        {% for page_num in pagination.iter_pages(left_edge=1, left_current=1, right_current=2, right_edge=1) %}
+            {% if page_num %}
+                <a href="{{ url_for('admin_views.contact_us', page=page_num) }}" class="{{ 'active' if page_num == pagination.page else '' }}">{{ page_num }}</a>
+            {% else %}
+                <span>...</span>
+            {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+            <a href="{{ url_for('admin_views.contact_us', page=pagination.next_num) }}">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
