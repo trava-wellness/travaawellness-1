@@ -569,7 +569,8 @@
             <p class="section-subtitle" style="color: #500060;">Select your service, time & room like a premium show booking</p>
         </div>
 
-        <div class="booking-steps">
+        <form id="booking-form" class="booking-steps" method="post" action="{{ url_for('booking') }}">
+            <input type="hidden" name="location" value="Kharghar">
             <!-- STEP 1: GUEST DETAILS -->
             <div class="booking-card">
                 <h3 class="booking-step-title">Step 1 · Guest Details</h3>
@@ -581,8 +582,9 @@
                     </div>
                     <div class="form-group">
                         <label for="phone">Phone Number *</label>
-                        <input type="tel" id="phone" name="phone" class="form-control" required 
-                            placeholder="+91 70390 08000">
+                        <input type="tel" id="phone" name="phone" class="form-control" required
+                            inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}"
+                            placeholder="Enter 10-digit mobile number">
                     </div>
                 </div>
 
@@ -710,12 +712,16 @@
                 <p class="privacy-note">
                     <i class="fas fa-lock"></i> Your information is secure and used only for booking confirmation.
                 </p>
+                <label style="display:flex; align-items:center; gap:8px; margin: 0 0 14px; font-size: 0.92rem; color:#444;">
+                    <input type="checkbox" id="open-whatsapp" name="open_whatsapp" value="1" checked style="width:auto; margin:0;">
+                    Open WhatsApp after booking is saved
+                </label>
 
-                <button id="confirm-booking-btn" class="btn btn-primary" style="width: 100%; padding: 1.25rem; color: white; background-color: #500060;">
-                    <i class="fab fa-whatsapp"></i> Confirm Booking on WhatsApp
+                <button type="submit" id="confirm-booking-btn" class="btn btn-primary" style="width: 100%; padding: 1.25rem; color: white; background-color: #500060;">
+                    <i class="fas fa-calendar-check"></i> Confirm Booking
                 </button>
             </div>
-        </div>
+        </form>
     </div>
 </section>
 
@@ -741,10 +747,12 @@
     // Services from backend (Flask -> Jinja)
     window.servicesData = {{ services|tojson|safe }};
 
-    // Your WhatsApp number (no +, just countrycode+number)
-    const WA_NUMBER = "917039008000"; // +91 7039008000
+    const OPEN_WA_URL = {{ (wa_url or '')|tojson|safe }};
 
     document.addEventListener('DOMContentLoaded', function() {
+        if (OPEN_WA_URL) {
+            window.open(OPEN_WA_URL, '_blank');
+        }
         // ---------------------------
         // 1) SERVICE DROPDOWN LOGIC
         // ---------------------------
@@ -787,26 +795,13 @@
         }
 
         // ---------------------------
-        // 3) PHONE FORMATTING (+91 XXX XXX XXXX)
+        // 3) PHONE INPUT (India 10-digit only, no +91)
         // ---------------------------
         const phoneInput = document.getElementById('phone');
         if (phoneInput) {
             phoneInput.addEventListener('input', function(e) {
                 let value = e.target.value.replace(/\D/g, '');
-
-                if (value.length > 0) {
-                    value = '+' + value;
-                    if (value.length > 3) {
-                        value = value.substring(0, 3) + ' ' + value.substring(3);
-                    }
-                    if (value.length > 7) {
-                        value = value.substring(0, 7) + ' ' + value.substring(7);
-                    }
-                    if (value.length > 13) {
-                        value = value.substring(0, 13);
-                    }
-                }
-
+                if (value.length > 10) value = value.substring(0, 10);
                 e.target.value = value;
             });
         }
@@ -821,33 +816,19 @@
         const roomWarning = document.getElementById("room-warning");
         const confirmBtn = document.getElementById("confirm-booking-btn");
 
-        function getBookings() {
+        async function getBookedRoomsForSlot(date, time) {
+            if (!date || !time) return [];
             try {
-                return JSON.parse(localStorage.getItem("travaa_room_bookings") || "[]");
+                const response = await fetch(`/api/v1/public/booking-availability?date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}`);
+                if (!response.ok) return [];
+                const payload = await response.json();
+                return Array.isArray(payload.booked_rooms) ? payload.booked_rooms : [];
             } catch (e) {
                 return [];
             }
         }
 
-        function saveBookings(bookings) {
-            localStorage.setItem("travaa_room_bookings", JSON.stringify(bookings));
-        }
-
-        function isRoomBooked(date, time, roomId) {
-            const bookings = getBookings();
-            return bookings.some(
-                b => b.date === date && b.time === time && b.roomId === roomId
-            );
-        }
-
-        function getBookedRoomsForSlot(date, time) {
-            const bookings = getBookings();
-            return bookings
-                .filter(b => b.date === date && b.time === time)
-                .map(b => b.roomId);
-        }
-
-        function refreshRoomsUI() {
+        async function refreshRoomsUI() {
             const dateVal = dateInput ? dateInput.value : '';
             const timeVal = bookingTime ? bookingTime.value : '';
 
@@ -862,7 +843,7 @@
 
             if (!dateVal || !timeVal) return;
 
-            const bookedRooms = getBookedRoomsForSlot(dateVal, timeVal);
+            const bookedRooms = await getBookedRoomsForSlot(dateVal, timeVal);
 
             roomTiles.forEach(tile => {
                 const roomId = tile.getAttribute("data-room-id");
@@ -897,14 +878,16 @@
             });
         });
 
-        if (dateInput) dateInput.addEventListener("change", refreshRoomsUI);
-        if (bookingTime) bookingTime.addEventListener("change", refreshRoomsUI);
+        if (dateInput) dateInput.addEventListener("change", () => { refreshRoomsUI(); });
+        if (bookingTime) bookingTime.addEventListener("change", () => { refreshRoomsUI(); });
 
         // ---------------------------
         // 5) WHATSAPP CONFIRM BUTTON
         // ---------------------------
         if (confirmBtn) {
-            confirmBtn.addEventListener("click", function () {
+            const bookingForm = document.getElementById("booking-form");
+            confirmBtn.addEventListener("click", async function (event) {
+                event.preventDefault();
                 const name = document.getElementById("name")?.value.trim() || "";
                 const phone = document.getElementById("phone")?.value.trim() || "";
                 const email = document.getElementById("email")?.value.trim() || "";
@@ -920,46 +903,15 @@
                     return;
                 }
 
-                if (isRoomBooked(dateVal, timeVal, roomId)) {
+                const bookedRooms = await getBookedRoomsForSlot(dateVal, timeVal);
+                if (bookedRooms.includes(roomId)) {
                     alert("This room is already booked for the selected date & time. Please choose another room or time.");
                     refreshRoomsUI();
                     return;
                 }
-
-                // Save booking in localStorage (no admin, no changes later)
-                const bookings = getBookings();
-                bookings.push({
-                    date: dateVal,
-                    time: timeVal,
-                    roomId: roomId,
-                    name: name,
-                    service: service
-                });
-                saveBookings(bookings);
-                refreshRoomsUI();
-
-                // Get room name for message
-                const selectedRoomTile = roomTiles.find(t => t.getAttribute("data-room-id") === roomId);
-                const roomName = selectedRoomTile
-                    ? selectedRoomTile.querySelector(".room-name").textContent
-                    : roomId;
-
-                let msg = `*NEW BOOKING REQUEST - TRAVAA WELLNESS*%0A%0A`;
-                msg += `*Name:* ${name}%0A`;
-                msg += `*Phone:* ${phone}%0A`;
-                msg += `*Email:* ${email}%0A`;
-                msg += `*Category:* ${category}%0A`;
-                msg += `*Service:* ${service}%0A`;
-                msg += `*Date:* ${dateVal}%0A`;
-                msg += `*Time:* ${timeVal}%0A`;
-                msg += `*Room:* ${roomName}%0A`;
-                if (notes) {
-                    msg += `%0A*Notes:* ${notes}%0A`;
+                if (bookingForm) {
+                    bookingForm.submit();
                 }
-                msg += `%0A_Sent via Travaa Wellness website (room-based booking)._`;
-
-                const whatsappURL = `https://wa.me/${WA_NUMBER}?text=${msg}`;
-                window.open(whatsappURL, '_blank');
             });
         }
 

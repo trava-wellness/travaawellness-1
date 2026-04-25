@@ -1,0 +1,48 @@
+{% extends "admin/base.html" %}
+{% block title %}Booking Details{% endblock %}
+{% block content %}
+<style>
+    .booking-view { font-family: "Outfit", system-ui, sans-serif; max-width: 860px; }
+    .booking-view h1 { margin:0 0 14px; font-size:1.7rem; color:#1a1020; }
+    .booking-panel { background:linear-gradient(145deg,#fff,#faf8fc); border:1px solid rgba(80,0,96,.08); border-radius:14px; padding:18px; box-shadow:0 8px 24px rgba(80,0,96,.07); }
+    .booking-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 16px; }
+    .booking-item { background:#fff; border:1px solid rgba(80,0,96,.08); border-radius:10px; padding:10px 12px; }
+    .booking-item .k { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#6b6570; margin-bottom:4px; }
+    .booking-item .v { color:#1f1b24; font-weight:600; word-break:break-word; }
+    .booking-notes { margin-top:12px; background:#fff; border:1px solid rgba(80,0,96,.08); border-radius:10px; padding:12px; }
+    .booking-notes .k { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#6b6570; margin-bottom:6px; }
+    .booking-notes .v { white-space:pre-wrap; color:#2e2933; }
+    .booking-actions { margin-top:14px; display:flex; gap:10px; align-items:center; }
+    .booking-actions a { color:#500060; text-decoration:none; font-weight:600; }
+    .booking-actions a:hover { text-decoration:underline; }
+    @media (max-width: 700px) { .booking-grid { grid-template-columns:1fr; } }
+</style>
+
+<div class="booking-view">
+    <h1>Booking #{{ booking.id }}</h1>
+    <div class="booking-panel">
+        <div class="booking-grid">
+            <div class="booking-item"><div class="k">Name</div><div class="v">{{ booking.name }}</div></div>
+            <div class="booking-item"><div class="k">Email</div><div class="v"><a href="mailto:{{ booking.email }}">{{ booking.email }}</a></div></div>
+            <div class="booking-item"><div class="k">Phone</div><div class="v">{{ booking.phone }}</div></div>
+            <div class="booking-item"><div class="k">Location</div><div class="v">{{ booking.location or "-" }}</div></div>
+            <div class="booking-item"><div class="k">Category</div><div class="v">{{ booking.category }}</div></div>
+            <div class="booking-item"><div class="k">Service</div><div class="v">{{ booking.service }}</div></div>
+            <div class="booking-item"><div class="k">Date</div><div class="v">{{ booking.date }}</div></div>
+            <div class="booking-item"><div class="k">Time</div><div class="v">{{ booking.time }}</div></div>
+            <div class="booking-item"><div class="k">Room</div><div class="v">{{ booking.selected_room or "-" }}</div></div>
+            <div class="booking-item"><div class="k">Received</div><div class="v">{{ booking.created_at.strftime('%d %b %Y, %I:%M %p') if booking.created_at else "-" }}</div></div>
+        </div>
+        <div class="booking-notes">
+            <div class="k">Notes</div>
+            <div class="v">{{ booking.notes or "No notes provided." }}</div>
+        </div>
+        <div class="booking-actions">
+            <a href="{{ url_for('admin_views.bookings') }}">← Back to bookings</a>
+            <form method="post" action="{{ url_for('admin_views.booking_delete', booking_id=booking.id) }}" style="margin-left:auto;" onsubmit="return confirm('Delete this booking?');">
+                <button type="submit" class="btn-danger">Delete Booking</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -29,11 +29,12 @@ class Booking(db.Model):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20), nullable=False)
-    location = db.Column(db.String(50), nullable=False)
+    location = db.Column(db.String(50), nullable=True)
     category = db.Column(db.String(50), nullable=False)
     service = db.Column(db.String(100), nullable=False)
     date = db.Column(db.String(20), nullable=False)
     time = db.Column(db.String(10), nullable=False)
+    selected_room = db.Column(db.String(20), nullable=True, index=True)
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -236,9 +237,35 @@ def purge_old_contact_messages():
         print(f"purge_old_contact_messages: {e}")
 
 
+def ensure_booking_schema():
+    """Backward-compatible booking columns for older SQLite files."""
+    try:
+        columns = {
+            row[1]
+            for row in db.session.execute(db.text("PRAGMA table_info(booking)")).fetchall()
+        }
+        alter_statements = []
+        if "location" not in columns:
+            alter_statements.append("ALTER TABLE booking ADD COLUMN location VARCHAR(50)")
+        if "selected_room" not in columns:
+            alter_statements.append("ALTER TABLE booking ADD COLUMN selected_room VARCHAR(20)")
+        if "notes" not in columns:
+            alter_statements.append("ALTER TABLE booking ADD COLUMN notes TEXT")
+        if "created_at" not in columns:
+            alter_statements.append("ALTER TABLE booking ADD COLUMN created_at DATETIME")
+
+        for stmt in alter_statements:
+            db.session.execute(db.text(stmt))
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"ensure_booking_schema: {e}")
+
+
 # Create database tables
 with app.app_context():
     db.create_all()
+    ensure_booking_schema()
     print("Database tables created successfully!")
     purge_old_contact_messages()
 
@@ -1040,23 +1067,53 @@ def blog_post(slug):
         posts=sorted(posts, key=lambda x: x["created_at"], reverse=True),
     )
 
+
+@app.get("/api/v1/public/booking-availability")
+def booking_availability():
+    date = (request.args.get("date") or "").strip()
+    time = (request.args.get("time") or "").strip()
+    if not date or not time:
+        return jsonify({"booked_rooms": []})
+
+    rows = (
+        Booking.query.filter_by(date=date, time=time)
+        .with_entities(Booking.selected_room)
+        .all()
+    )
+    booked = sorted({(r[0] or "").strip() for r in rows if (r[0] or "").strip()})
+    return jsonify({"booked_rooms": booked})
+
+
 @app.route('/booking', methods=['GET', 'POST'])
 def booking():
     if request.method == 'POST':
         try:
-            # Get form data
-            name = request.form.get('name')
-            email = request.form.get('email')
-            phone = request.form.get('phone')
-            location = request.form.get('location')
-            category = request.form.get('category')
-            service = request.form.get('service')
-            date = request.form.get('date')
-            time = request.form.get('time')
-            notes = request.form.get('notes', '')
-            
-            # Create booking record
-            booking = Booking(
+            name = (request.form.get('name') or '').strip()
+            email = (request.form.get('email') or '').strip()
+            phone = (request.form.get('phone') or '').strip()
+            location = (request.form.get('location') or 'Kharghar').strip()
+            category = (request.form.get('category') or '').strip()
+            service = (request.form.get('service') or '').strip()
+            date = (request.form.get('date') or '').strip()
+            time = (request.form.get('time') or '').strip()
+            selected_room = (request.form.get('selected_room') or '').strip()
+            notes = (request.form.get('notes') or '').strip()
+            open_wa = (request.form.get('open_whatsapp') or '').strip() == '1'
+
+            if not all([name, email, phone, category, service, date, time, selected_room]):
+                flash('Please fill all required booking fields and select a room.', 'error')
+                return redirect(url_for('booking'))
+
+            already_taken = Booking.query.filter_by(
+                date=date,
+                time=time,
+                selected_room=selected_room,
+            ).first()
+            if already_taken:
+                flash('Selected room is already booked for this slot. Please choose another room/time.', 'error')
+                return redirect(url_for('booking'))
+
+            booking_row = Booking(
                 name=name,
                 email=email,
                 phone=phone,
@@ -1065,36 +1122,42 @@ def booking():
                 service=service,
                 date=date,
                 time=time,
+                selected_room=selected_room,
                 notes=notes
             )
-            
-            db.session.add(booking)
+
+            db.session.add(booking_row)
             db.session.commit()
-            
-            # Create WhatsApp message
-            message = f"""New Booking Request from {name}:
-            
+
+            flash('Booking saved successfully. Our team will confirm your slot shortly.', 'success')
+            if open_wa:
+                message = f"""New Booking Request from {name}:
+
 📍 Location: {location}
 💆 Category: {category}
 ✨ Service: {service}
 📅 Date: {date}
 ⏰ Time: {time}
+🚪 Room: {selected_room}
 📞 Phone: {phone}
 📧 Email: {email}
 
 Notes: {notes if notes else 'None'}"""
-            
-            encoded_message = urllib.parse.quote(message)
-            whatsapp_url = f"https://wa.me/{app.config['WHATSAPP_NUMBER']}?text={encoded_message}"
-            
-            return redirect(whatsapp_url)
-            
+                encoded_message = urllib.parse.quote(message)
+                whatsapp_url = f"https://wa.me/{app.config['WHATSAPP_NUMBER']}?text={encoded_message}"
+                return redirect(url_for('booking', open_wa='1', wa_url=urllib.parse.quote(whatsapp_url, safe='')))
+            return redirect(url_for('booking'))
+
         except Exception as e:
             print(f"Error saving booking: {e}")
+            db.session.rollback()
             flash('There was an error processing your booking. Please try again.', 'error')
             return redirect(url_for('booking'))
-    
-    return render_template('booking.html', services=get_dynamic_services_data())
+
+    wa_url = None
+    if (request.args.get('open_wa') or '').strip() == '1':
+        wa_url = urllib.parse.unquote(request.args.get('wa_url') or '')
+    return render_template('booking.html', services=get_dynamic_services_data(), wa_url=wa_url)
 
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
@@ -1223,6 +1286,7 @@ with app.app_context():
     seed_default_admin()
     seed_services_catalog()
     backfill_missing_service_prices()
+    ensure_booking_schema()
     seed_legacy_blog_posts()
 
 if __name__ == '__main__':

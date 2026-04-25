@@ -66,11 +66,14 @@ def logout():
 @admin_required
 def dashboard():
     _, _, ServiceCategory, ServiceItem, _, CmsBlogPost, _ = _app_deps()
+    app_module = importlib.import_module("app")
+    Booking = app_module.Booking
     stats = {
         "categories": ServiceCategory.query.count(),
         "services": ServiceItem.query.count(),
         "blog_total": CmsBlogPost.query.count(),
         "blog_published": CmsBlogPost.query.filter_by(status="published").count(),
+        "booking_total": Booking.query.count(),
     }
     return render_template("admin/dashboard.html", stats=stats)
 
@@ -143,6 +146,38 @@ def contact_us():
     page = request.args.get("page", 1, type=int)
     pagination = ContactMessage.query.order_by(ContactMessage.created_at.desc()).paginate(page=page, per_page=12, error_out=False)
     return render_template("admin/contact_us.html", messages=pagination.items, pagination=pagination)
+
+
+@admin_views.get("/bookings")
+@admin_required
+def bookings():
+    app_module = importlib.import_module("app")
+    Booking = app_module.Booking
+    page = request.args.get("page", 1, type=int)
+    pagination = Booking.query.order_by(Booking.created_at.desc()).paginate(page=page, per_page=12, error_out=False)
+    return render_template("admin/bookings.html", bookings=pagination.items, pagination=pagination)
+
+
+@admin_views.get("/bookings/<int:booking_id>")
+@admin_required
+def booking_view(booking_id):
+    app_module = importlib.import_module("app")
+    Booking = app_module.Booking
+    booking = Booking.query.get_or_404(booking_id)
+    return render_template("admin/booking_view.html", booking=booking)
+
+
+@admin_views.post("/bookings/<int:booking_id>/delete")
+@admin_required
+def booking_delete(booking_id):
+    app_module = importlib.import_module("app")
+    Booking = app_module.Booking
+    db = app_module.db
+    booking = Booking.query.get_or_404(booking_id)
+    db.session.delete(booking)
+    db.session.commit()
+    flash("Booking deleted", "success")
+    return redirect(url_for("admin_views.bookings"))
 
 
 @admin_views.get("/blog")

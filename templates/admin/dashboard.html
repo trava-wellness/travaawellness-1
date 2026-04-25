@@ -224,6 +224,24 @@
             <div class="stat-hint">Prices &amp; catalog →</div>
         </a>
 
+        <a class="dash-stat-card" href="{{ url_for('admin_views.bookings') }}">
+            <div class="stat-top">
+                <div class="stat-icon" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 7h18"></path>
+                        <path d="M8 3v4"></path>
+                        <path d="M16 3v4"></path>
+                        <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+                        <path d="M8 12h8"></path>
+                    </svg>
+                </div>
+                <span class="stat-chevron" aria-hidden="true">→</span>
+            </div>
+            <div class="stat-label">Bookings</div>
+            <div class="stat-value">{{ stats.booking_total or 0 }}</div>
+            <div class="stat-hint">Latest requests →</div>
+        </a>
+
         <a class="dash-stat-card" href="{{ url_for('admin_views.blog') }}">
             <div class="stat-top">
                 <div class="stat-icon" aria-hidden="true">
@@ -255,5 +273,15 @@
         </a>
     </div>
 
+    <section class="dash-quick" aria-label="Shortcuts">
+        <h2>Shortcuts</h2>
+        <div class="dash-quick-links">
+            <a href="{{ url_for('admin_views.services') }}">Services</a>
+            <a href="{{ url_for('admin_views.bookings') }}">Bookings</a>
+            <a href="{{ url_for('admin_views.contact_us') }}">Contact leads</a>
+            <a href="{{ url_for('admin_views.blog') }}">Blog</a>
+            <a href="{{ url_for('admin_views.blog_new') }}">New blog post</a>
+        </div>
+    </section>
 </div>
 {% endblock %}

@@ -1,0 +1,81 @@
+{% extends "admin/base.html" %}
+{% block title %}Bookings{% endblock %}
+{% block content %}
+<style>
+    .bookings-page { font-family: "Outfit", system-ui, sans-serif; }
+    .bookings-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:14px; }
+    .bookings-head h1 { margin:0; font-size:1.75rem; color:#1a1020; }
+    .bookings-head p { margin:0; color:#6b6570; font-weight:500; }
+    .bookings-wrap { background:linear-gradient(145deg,#fff,#faf8fc); border:1px solid rgba(80,0,96,.08); border-radius:14px; padding:16px; box-shadow:0 8px 24px rgba(80,0,96,.07); }
+    .bookings-table { width:100%; border-collapse:separate; border-spacing:0; }
+    .bookings-table th { text-align:left; padding:11px 12px; font-size:.74rem; text-transform:uppercase; letter-spacing:.07em; color:#500060; background:rgba(80,0,96,.06); border-bottom:2px solid rgba(80,0,96,.1); }
+    .bookings-table td { padding:12px; border-bottom:1px solid rgba(80,0,96,.08); vertical-align:middle; font-size:.92rem; }
+    .bookings-table tr:last-child td { border-bottom:0; }
+    .bookings-table .mail { color:#500060; text-decoration:none; font-weight:600; }
+    .bookings-table .mail:hover { text-decoration:underline; }
+    .bookings-table .room-pill { display:inline-block; padding:.2rem .55rem; border-radius:999px; background:rgba(80,0,96,.09); color:#500060; font-weight:700; font-size:.78rem; }
+    .bookings-table .actions { white-space:nowrap; text-align:right; }
+    .bookings-table .actions a { color:#500060; font-weight:600; text-decoration:none; margin-right:10px; }
+    .bookings-table .actions a:hover { text-decoration:underline; }
+    .bookings-table .actions button { padding:.35rem .65rem; border-radius:8px; font-size:.8rem; }
+    .empty { text-align:center; color:#6b6570; padding:28px 12px; }
+</style>
+
+<div class="bookings-page">
+    <div class="bookings-head">
+        <h1>Bookings</h1>
+        <p>Latest bookings first.</p>
+    </div>
+    <div class="bookings-wrap">
+        <table class="bookings-table">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Service</th>
+                    <th>Room</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in bookings %}
+                <tr>
+                    <td><a class="mail" href="mailto:{{ b.email }}">{{ b.email }}</a></td>
+                    <td>{{ b.date }}</td>
+                    <td>{{ b.time }}</td>
+                    <td>{{ b.service }}</td>
+                    <td><span class="room-pill">{{ b.selected_room or "-" }}</span></td>
+                    <td class="actions">
+                        <a href="{{ url_for('admin_views.booking_view', booking_id=b.id) }}">View</a>
+                        <form method="post" action="{{ url_for('admin_views.booking_delete', booking_id=b.id) }}" style="display:inline;" onsubmit="return confirm('Delete this booking?');">
+                            <button type="submit" class="btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="empty">No bookings yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+            <a href="{{ url_for('admin_views.bookings', page=pagination.prev_num) }}">Prev</a>
+        {% endif %}
+        {% for page_num in pagination.iter_pages(left_edge=1, left_current=1, right_current=2, right_edge=1) %}
+            {% if page_num %}
+                <a href="{{ url_for('admin_views.bookings', page=page_num) }}" class="{{ 'active' if page_num == pagination.page else '' }}">{{ page_num }}</a>
+            {% else %}
+                <span>...</span>
+            {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+            <a href="{{ url_for('admin_views.bookings', page=pagination.next_num) }}">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

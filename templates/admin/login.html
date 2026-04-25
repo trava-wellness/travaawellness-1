@@ -4,22 +4,170 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; font-family: Arial, sans-serif; background: #f5f6fa; }
-        .wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .card { width: 340px; background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
-        input { width: 100%; padding: 10px; margin: 8px 0 14px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; border: 0; border-radius: 6px; background: #500060; color: #fff; cursor: pointer; }
+        :root {
+            --brand: #500060;
+            --brand-soft: #7d3a93;
+            --bg: #f4f5fb;
+            --text: #1d1822;
+            --muted: #6b6570;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Outfit", system-ui, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 15% 20%, rgba(80, 0, 96, 0.14), transparent 35%),
+                radial-gradient(circle at 85% 80%, rgba(125, 58, 147, 0.12), transparent 40%),
+                var(--bg);
+        }
+
+        .wrap {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 420px;
+            background: linear-gradient(145deg, #ffffff 0%, #fcfbfd 100%);
+            border-radius: 18px;
+            padding: 28px 26px 24px;
+            border: 1px solid rgba(80, 0, 96, 0.1);
+            box-shadow:
+                0 4px 14px rgba(80, 0, 96, 0.08),
+                0 18px 42px rgba(80, 0, 96, 0.14);
+        }
+
+        .brand {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 14px;
+            color: var(--brand);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .brand span {
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--brand-soft);
+        }
+
+        h2 {
+            margin: 0 0 6px;
+            font-size: 1.45rem;
+            font-weight: 700;
+        }
+
+        .sub {
+            margin: 0 0 16px;
+            color: var(--muted);
+            font-size: 0.93rem;
+        }
+
+        .flash {
+            margin-bottom: 12px;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 0.88rem;
+            font-weight: 500;
+        }
+
+        .flash.error {
+            background: #ffebee;
+            color: #b71c1c;
+            border: 1px solid #ffcdd2;
+        }
+
+        .flash.success {
+            background: #e8f5e9;
+            color: #1b5e20;
+            border: 1px solid #c8e6c9;
+        }
+
+        label {
+            display: block;
+            margin: 12px 0 6px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #5a4f65;
+            font-weight: 700;
+        }
+
+        input {
+            width: 100%;
+            padding: 11px 12px;
+            margin: 0 0 8px;
+            border-radius: 10px;
+            border: 1px solid rgba(80, 0, 96, 0.2);
+            font-family: inherit;
+            font-size: 0.96rem;
+            color: var(--text);
+            background: #fff;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--brand);
+            box-shadow: 0 0 0 3px rgba(80, 0, 96, 0.12);
+        }
+
+        button {
+            width: 100%;
+            margin-top: 10px;
+            padding: 11px 14px;
+            border: 0;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--brand), #6d2482);
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(80, 0, 96, 0.28);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px rgba(80, 0, 96, 0.34);
+        }
     </style>
 </head>
 <body>
     <div class="wrap">
         <form class="card" method="post" action="{{ url_for('admin_views.login_submit') }}">
-            <h2>Admin Login</h2>
-            <label>Email</label>
-            <input type="email" name="email" required>
-            <label>Password</label>
-            <input type="password" name="password" required>
+            <div class="brand">Travaa <span>Admin</span></div>
+            <h2>Welcome Back</h2>
+            <p class="sub">Sign in to manage services, bookings, leads, and blog content.</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endwith %}
+
+            <label for="email">Email</label>
+            <input id="email" type="email" name="email" required autocomplete="email">
+
+            <label for="password">Password</label>
+            <input id="password" type="password" name="password" required autocomplete="current-password">
+
             <button type="submit">Login</button>
         </form>
     </div>

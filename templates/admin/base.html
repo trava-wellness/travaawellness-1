@@ -146,6 +146,7 @@
             <div class="admin-nav-links">
                 <a class="nav-link{% if ep == 'admin_views.dashboard' %} active{% endif %}" href="{{ url_for('admin_views.dashboard') }}">Dashboard</a>
                 <a class="nav-link{% if ep in ('admin_views.services', 'admin_views.services_update_price') %} active{% endif %}" href="{{ url_for('admin_views.services') }}">Services</a>
+                <a class="nav-link{% if ep in ('admin_views.bookings', 'admin_views.booking_view', 'admin_views.booking_delete') %} active{% endif %}" href="{{ url_for('admin_views.bookings') }}">Bookings</a>
                 <a class="nav-link{% if ep in ('admin_views.about', 'admin_views.contact_us') %} active{% endif %}" href="{{ url_for('admin_views.about') }}">Contact Us</a>
                 <a class="nav-link{% if ep in ('admin_views.blog', 'admin_views.blog_new', 'admin_views.blog_edit', 'admin_views.blog_save') %} active{% endif %}" href="{{ url_for('admin_views.blog') }}">Blog</a>
             </div>
