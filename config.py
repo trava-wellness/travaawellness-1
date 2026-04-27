@@ -9,6 +9,6 @@ class Config:
     SQLALCHEMY_DATABASE_URI = f'sqlite:///{os.path.join(BASE_DIR, "database", "site.db")}'
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    WHATSAPP_NUMBER = '+1234567890'  # Replace with actual number
+    WHATSAPP_NUMBER = '+9170390080000'  # Replace with actual number
     SPA_NAME = 'Travaa Wellness Spa & Nail Art'
     INSTAGRAM_USERNAME = 'travaawellness'
